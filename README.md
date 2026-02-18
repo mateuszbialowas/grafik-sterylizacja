@@ -17,4 +17,5 @@ If you are developing a production application, we recommend using TypeScript wi
 
 ## Commands
 npm create vite@latest grafik-sterylizacja -- --template react
-
+npm install -D vite-plugin-singlefile
+npm install -D tailwindcss @tailwindcss/vite
