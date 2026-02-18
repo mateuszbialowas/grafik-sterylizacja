@@ -16,7 +16,7 @@ export default function OvertimeModal({ onSave, onClose, employees, initial }) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={onClose}>
       <div ref={ref} tabIndex={-1} className="bg-white rounded-lg shadow-xl p-5 min-w-[340px]" onClick={e => e.stopPropagation()} onKeyDown={e => { if (e.key === "Escape") onClose(); if (e.key === "Enter") save(); }}>
-        <h3 className="font-bold text-sm mb-3 text-orange-700">🕐 Dodaj nadgodziny</h3>
+        <h3 className="font-bold text-sm mb-3 text-orange-700">Dodaj nadgodziny</h3>
         <div className="flex gap-3 mb-3">
           <div className="flex-1"><label className="text-xs text-gray-500 block mb-1">Pracownik</label>
             <select value={empId} onChange={e => setEmpId(+e.target.value)} className="border rounded px-2 py-1 text-sm w-full">{employees.map(emp => <option key={emp.id} value={emp.id}>{emp.name}</option>)}</select>

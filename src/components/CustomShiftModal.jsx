@@ -24,7 +24,7 @@ export default function CustomShiftModal({ onSave, onClose, initial, empName, da
         <div className="mb-4 flex items-center gap-4">
           <div className="text-sm">Czas: <span className={"font-bold " + (hours > 0 ? "text-pink-700" : "text-red-500")}>{hours > 0 ? formatHours(hours) + "h" : "nieprawidłowy"}</span></div>
           {hours > 0 && <div className={"text-xs font-semibold " + (Math.abs(remainingAfter) < 0.01 ? "text-green-600" : remainingAfter > 0 ? "text-red-500" : "text-amber-600")}>
-            {Math.abs(remainingAfter) < 0.01 ? "✓ Norma osiągnięta!" : remainingAfter > 0 ? "Brakuje " + formatHours(remainingAfter) + "h" : "Nadwyżka " + formatHours(Math.abs(remainingAfter)) + "h"}
+            {Math.abs(remainingAfter) < 0.01 ? "Norma osiągnięta!" : remainingAfter > 0 ? "Brakuje " + formatHours(remainingAfter) + "h" : "Nadwyżka " + formatHours(Math.abs(remainingAfter)) + "h"}
           </div>}
         </div>
         <div className="flex gap-2">
