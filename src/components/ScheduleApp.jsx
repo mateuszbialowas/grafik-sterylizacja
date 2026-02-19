@@ -6,6 +6,7 @@ import OvertimeCell from "./OvertimeCell";
 import CustomShiftModal from "./CustomShiftModal";
 import OvertimeModal from "./OvertimeModal";
 import NoteModal from "./NoteModal";
+import ConfirmModal from "./ConfirmModal";
 import useLocalStorage from "../hooks/useLocalStorage";
 
 function Tooltip({ text, children }) {
@@ -94,6 +95,9 @@ export default function ScheduleApp() {
   const [customModal, setCustomModal] = useState(null);
   const [overtimeModal, setOvertimeModal] = useState(null);
   const [noteModal, setNoteModal] = useState(null);
+  const [confirmModal, setConfirmModal] = useState(null);
+  const [empContextMenu, setEmpContextMenu] = useState(null);
+  const [otContextMenu, setOtContextMenu] = useState(null);
   const [toasts, setToasts] = useState([]);
   const [titleClicks, setTitleClicks] = useState(0);
   const [sunEasterEgg, setSunEasterEgg] = useState(false);
@@ -135,8 +139,8 @@ export default function ScheduleApp() {
   const openContextMenu = useCallback((e, eid, day) => {
     e.preventDefault();
     const rect = e.currentTarget.getBoundingClientRect();
-    setContextMenu({ empId: eid, day, x: rect.left, y: rect.bottom });
-  }, []);
+    setContextMenu({ empId: eid, day, x: rect.left, y: rect.bottom, hasNote: !!(requests[eid]?.[day]) });
+  }, [requests]);
 
   const handleContextMenuSelect = useCallback((action) => {
     if (!contextMenu) return;
@@ -399,7 +403,7 @@ export default function ScheduleApp() {
                     onBlur={e => { const v = parseInt(e.target.value); if (!isNaN(v) && v > 0) { setData(p => ({ ...p, workingDaysOverride: v === autoWorkingDays ? null : v })); } setEditingWorkingDays(false); }}
                     onKeyDown={e => { if (e.key === "Enter") e.target.blur(); if (e.key === "Escape") setEditingWorkingDays(false); }} />
                 ) : (
-                  <Tooltip text={workingDaysOverride != null ? "Zmienione ręcznie \u2022 Kliknij 2x aby edytować" : "Kliknij 2x aby edytować"}><span className={"text-[20px] font-bold tracking-[-0.45px] leading-7 cursor-pointer " + (workingDaysOverride != null ? "text-[#312c85]" : "text-[#101828]")} onDoubleClick={() => setEditingWorkingDays(true)}>{workingDays}</span></Tooltip>
+                  <Tooltip text={workingDaysOverride != null ? "Zmienione ręcznie \u2022 Prawy klik aby edytować" : "Prawy klik aby edytować"}><span className={"text-[20px] font-bold tracking-[-0.45px] leading-7 cursor-pointer " + (workingDaysOverride != null ? "text-[#312c85]" : "text-[#101828]")} onContextMenu={e => { e.preventDefault(); setEditingWorkingDays(true); }}>{workingDays}</span></Tooltip>
                 )}
                 <span className={"text-[12px] font-normal leading-4 " + (workingDaysOverride != null ? "text-[#4f39f6]" : "text-[#4a5565]")}>({"\u00d7"} 7:35h)</span>
               </div>
@@ -441,26 +445,25 @@ export default function ScheduleApp() {
                 const diff = hours - empNorm;
                 return (
                   <tr key={emp.id}>
-                    <td className="border border-[#e5e7eb] px-1.5 py-0 sticky left-0 bg-white z-10" style={{ width: 160, minWidth: 160, height: 45 }}>
+                    <td className="border border-[#e5e7eb] px-1.5 py-0 sticky left-0 bg-white z-10" style={{ width: 160, minWidth: 160, height: 45 }}
+                      onContextMenu={e => { e.preventDefault(); const rect = e.currentTarget.getBoundingClientRect(); setEmpContextMenu({ empId: emp.id, empName: emp.name, x: rect.left, y: rect.bottom }); }}>
                       {editingEmployee === emp.id ? (
                         <input autoFocus defaultValue={emp.name} className="border border-[#e5e7eb] rounded-lg px-2 py-1 text-[14px] w-full outline-none"
-                          onBlur={e => { const val = e.target.value.trim(); if (!val) { if (window.confirm("Czy na pewno chcesz usunąć pracownika " + emp.name + "?")) { setData(p => ({ ...p, employees: p.employees.filter(x => x.id !== emp.id) })); } } else { setData(p => ({ ...p, employees: p.employees.map(x => x.id === emp.id ? { ...x, name: val } : x) })); } setEditingEmployee(null); }}
-                          onKeyDown={e => { if (e.key === "Enter") e.target.blur(); }} />
+                          onBlur={e => { const val = e.target.value.trim(); if (val) { setData(p => ({ ...p, employees: p.employees.map(x => x.id === emp.id ? { ...x, name: val } : x) })); } setEditingEmployee(null); }}
+                          onKeyDown={e => { if (e.key === "Enter") e.target.blur(); if (e.key === "Escape") setEditingEmployee(null); }} />
                       ) : (
-                        <Tooltip text="Kliknij 2x aby edytować">
-                          <div onDoubleClick={() => setEditingEmployee(emp.id)} className="cursor-pointer">
-                            <div className="text-[16px] font-semibold text-[#101828] tracking-[-0.31px] leading-6">{emp.name}</div>
-                          </div>
+                        <Tooltip text="Prawy klik: edytuj / usuń">
+                          <div className="text-[16px] font-semibold text-[#101828] tracking-[-0.31px] leading-6">{emp.name}</div>
                         </Tooltip>
                       )}
                     </td>
-                    <td className="border border-[#e5e7eb] px-0 py-0 text-center sticky left-[160px] bg-white z-10 cursor-pointer" style={{ width: 100, minWidth: 100 }} onDoubleClick={() => setEditingNorm(emp.id)}>
+                    <td className="border border-[#e5e7eb] px-0 py-0 text-center sticky left-[160px] bg-white z-10 cursor-pointer" style={{ width: 100, minWidth: 100 }} onContextMenu={e => { e.preventDefault(); setEditingNorm(emp.id); }}>
                       {editingNorm === emp.id ? (
                         <input autoFocus defaultValue={formatHours(empNorm)} className="border border-[#e5e7eb] rounded-lg px-1 py-0.5 text-[14px] w-16 text-center outline-none"
                           onBlur={e => { const raw = e.target.value.trim(); let v; if (raw.includes(":")) { const [h, m] = raw.split(":"); v = parseInt(h) + parseInt(m) / 60; } else { v = parseFloat(raw.replace(",", ".")); } if (!isNaN(v) && v > 0) { setData(p => { const no = { ...p.normOverrides }; if (Math.abs(v - monthlyNorm) < 0.01) { delete no[emp.id]; } else { no[emp.id] = v; } return { ...p, normOverrides: no }; }); } setEditingNorm(null); }}
                           onKeyDown={e => { if (e.key === "Enter") e.target.blur(); if (e.key === "Escape") setEditingNorm(null); }} />
                       ) : (
-                        <Tooltip text={normOverrides[emp.id] != null ? "Norma indywidualna \u2022 Kliknij 2x aby edytować" : "Kliknij 2x aby edytować"}><span className={"text-[16px] font-bold tracking-[-0.31px] leading-6 cursor-pointer " + (normOverrides[emp.id] != null ? "text-orange-600" : "text-[#432dd7]")}>{formatHours(empNorm)}</span></Tooltip>
+                        <Tooltip text={normOverrides[emp.id] != null ? "Norma indywidualna \u2022 Prawy klik aby edytować" : "Prawy klik aby edytować"}><span className={"text-[16px] font-bold tracking-[-0.31px] leading-6 cursor-pointer " + (normOverrides[emp.id] != null ? "text-orange-600" : "text-[#432dd7]")}>{formatHours(empNorm)}</span></Tooltip>
                       )}
                     </td>
                     {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => (
@@ -516,8 +519,13 @@ export default function ScheduleApp() {
                       {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => {
                         const ex = overtime[emp.id]?.[d];
                         return <OvertimeCell key={d} value={ex || ""} isWeekendDay={isWeekend(year, month, d)} onClick={() => {
-                          if (ex) { if (window.confirm("Czy na pewno chcesz usunąć nadgodziny?")) removeOT(emp.id, d); }
-                          else setOvertimeModal({ empId: emp.id, day: d, startH: 15, startM: 0, endH: 19, endM: 0 });
+                          if (!ex) setOvertimeModal({ empId: emp.id, day: d, startH: 15, startM: 0, endH: 19, endM: 0 });
+                        }} onContextMenu={e => {
+                          if (!ex) return;
+                          e.preventDefault();
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const parsed = parseOvertimeVal(ex);
+                          setOtContextMenu({ empId: emp.id, empName: emp.name, day: d, x: rect.left, y: rect.bottom, value: ex, parsed });
                         }} />;
                       })}
                       <td className="border border-[#e5e7eb] px-1 py-0 text-center font-bold text-[#c2410c] bg-[#fff7ed] text-[14px]">{otH > 0 ? formatHours(otH) : "–"}</td>
@@ -573,11 +581,11 @@ export default function ScheduleApp() {
                   <h4 className="text-[14px] font-semibold text-[#101828] tracking-[-0.15px] leading-5">Skróty klawiszowe i akcje</h4>
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-2"><kbd className="h-6.5 px-2 py-1 bg-white border border-[#d1d5dc] rounded text-[12px] font-mono text-[#0a0a0a] leading-4 whitespace-nowrap">Klik na komórkę</kbd><span className="text-[14px] font-normal text-[#4a5565] tracking-[-0.15px] leading-5">Zmień zmianę (cykl: wolne → D → D* → R)</span></div>
-                    <div className="flex items-center gap-2"><kbd className="h-6.5 px-2 py-1 bg-white border border-[#d1d5dc] rounded text-[12px] font-mono text-[#0a0a0a] leading-4 whitespace-nowrap">Prawy klik na komórkę</kbd><span className="text-[14px] font-normal text-[#4a5565] tracking-[-0.15px] leading-5">Menu z wszystkimi opcjami zmian (D, D*, R, pod tel., NS, wolne)</span></div>
+                    <div className="flex items-center gap-2"><kbd className="h-6.5 px-2 py-1 bg-white border border-[#d1d5dc] rounded text-[12px] font-mono text-[#0a0a0a] leading-4 whitespace-nowrap">Prawy klik na komórkę</kbd><span className="text-[14px] font-normal text-[#4a5565] tracking-[-0.15px] leading-5">Menu zmian + notatki</span></div>
                     <div className="flex items-center gap-2"><kbd className="h-6.5 px-2 py-1 bg-white border border-[#d1d5dc] rounded text-[12px] font-mono text-[#0a0a0a] leading-4 whitespace-nowrap">Shift + klik na komórkę</kbd><span className="text-[14px] font-normal text-[#4a5565] tracking-[-0.15px] leading-5">Dodaj notatkę</span></div>
-                    <div className="flex items-center gap-2"><kbd className="h-6.5 px-2 py-1 bg-white border border-[#d1d5dc] rounded text-[12px] font-mono text-[#0a0a0a] leading-4 whitespace-nowrap">2x klik na nazwisko</kbd><span className="text-[14px] font-normal text-[#4a5565] tracking-[-0.15px] leading-5">Edytuj nazwisko pracownika</span></div>
-                    <div className="flex items-center gap-2"><kbd className="h-6.5 px-2 py-1 bg-white border border-[#d1d5dc] rounded text-[12px] font-mono text-[#0a0a0a] leading-4 whitespace-nowrap">2x klik na normę</kbd><span className="text-[14px] font-normal text-[#4a5565] tracking-[-0.15px] leading-5">Edytuj indywidualną normę godzinową</span></div>
-                    <div className="flex items-center gap-2"><kbd className="h-6.5 px-2 py-1 bg-white border border-[#d1d5dc] rounded text-[12px] font-mono text-[#0a0a0a] leading-4 whitespace-nowrap">2x klik na dni robocze</kbd><span className="text-[14px] font-normal text-[#4a5565] tracking-[-0.15px] leading-5">Zmień liczbę dni roboczych w miesiącu</span></div>
+                    <div className="flex items-center gap-2"><kbd className="h-6.5 px-2 py-1 bg-white border border-[#d1d5dc] rounded text-[12px] font-mono text-[#0a0a0a] leading-4 whitespace-nowrap">Prawy klik na nazwisko</kbd><span className="text-[14px] font-normal text-[#4a5565] tracking-[-0.15px] leading-5">Edytuj lub usuń pracownika</span></div>
+                    <div className="flex items-center gap-2"><kbd className="h-6.5 px-2 py-1 bg-white border border-[#d1d5dc] rounded text-[12px] font-mono text-[#0a0a0a] leading-4 whitespace-nowrap">Prawy klik na normę</kbd><span className="text-[14px] font-normal text-[#4a5565] tracking-[-0.15px] leading-5">Edytuj indywidualną normę godzinową</span></div>
+                    <div className="flex items-center gap-2"><kbd className="h-6.5 px-2 py-1 bg-white border border-[#d1d5dc] rounded text-[12px] font-mono text-[#0a0a0a] leading-4 whitespace-nowrap">Prawy klik na dni robocze</kbd><span className="text-[14px] font-normal text-[#4a5565] tracking-[-0.15px] leading-5">Zmień liczbę dni roboczych w miesiącu</span></div>
                   </div>
                 </div>
               </div>
@@ -614,12 +622,50 @@ export default function ScheduleApp() {
               <span className="size-5 rounded bg-[#f3f4f6] border border-[#e5e7eb] text-[#99a1af] text-[11px] font-normal flex items-center justify-center">—</span>
               Wolne
             </button>
+            <div className="mx-2 my-1 h-px bg-[#e5e7eb]" />
+            <button onClick={() => { const emp = employees.find(x => x.id === contextMenu.empId); handleRequestClick(contextMenu.empId, contextMenu.day); setContextMenu(null); }} className="w-full text-left px-3 py-2 text-[14px] text-[#101828] tracking-[-0.15px] leading-5 hover:bg-[#f3f4f6] flex items-center gap-2.5">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4a5565" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              {contextMenu.hasNote ? "Edytuj notatkę" : "Dodaj notatkę"}
+            </button>
+            {contextMenu.hasNote && <button onClick={() => { const { empId, day } = contextMenu; setData(p => { const empReqs = { ...p.requests[empId] }; delete empReqs[day]; return { ...p, requests: { ...p.requests, [empId]: empReqs } }; }); setContextMenu(null); }} className="w-full text-left px-3 py-2 text-[14px] text-[#e7000b] tracking-[-0.15px] leading-5 hover:bg-[#fef2f2] flex items-center gap-2.5">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e7000b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              Usuń notatkę
+            </button>}
+          </div>
+        </div>
+      )}
+      {empContextMenu && (
+        <div className="fixed inset-0 z-50" onClick={() => setEmpContextMenu(null)} onContextMenu={e => { e.preventDefault(); setEmpContextMenu(null); }}>
+          <div className="absolute bg-white rounded-[10px] border border-[#e5e7eb] shadow-[0px_4px_16px_rgba(0,0,0,0.12)] py-1.5 min-w-[180px]" style={{ left: empContextMenu.x, top: empContextMenu.y }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => { setEditingEmployee(empContextMenu.empId); setEmpContextMenu(null); }} className="w-full text-left px-3 py-2 text-[14px] text-[#101828] tracking-[-0.15px] leading-5 hover:bg-[#f3f4f6] flex items-center gap-2.5">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4a5565" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              Edytuj nazwisko
+            </button>
+            <button onClick={() => { const { empId, empName } = empContextMenu; setEmpContextMenu(null); setConfirmModal({ title: "Usuń pracownika", message: "Czy na pewno chcesz usunąć pracownika " + empName + "? Wszystkie dane zmian zostaną utracone.", onConfirm: () => { setData(p => ({ ...p, employees: p.employees.filter(x => x.id !== empId) })); setConfirmModal(null); } }); }} className="w-full text-left px-3 py-2 text-[14px] text-[#e7000b] tracking-[-0.15px] leading-5 hover:bg-[#fef2f2] flex items-center gap-2.5">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e7000b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              Usuń pracownika
+            </button>
+          </div>
+        </div>
+      )}
+      {otContextMenu && (
+        <div className="fixed inset-0 z-50" onClick={() => setOtContextMenu(null)} onContextMenu={e => { e.preventDefault(); setOtContextMenu(null); }}>
+          <div className="absolute bg-white rounded-[10px] border border-[#e5e7eb] shadow-[0px_4px_16px_rgba(0,0,0,0.12)] py-1.5 min-w-[180px]" style={{ left: otContextMenu.x, top: otContextMenu.y }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => { const { empId, day, parsed } = otContextMenu; setOvertimeModal({ empId, day, startH: parsed?.startH ?? 15, startM: parsed?.startM ?? 0, endH: parsed?.endH ?? 19, endM: parsed?.endM ?? 0 }); setOtContextMenu(null); }} className="w-full text-left px-3 py-2 text-[14px] text-[#101828] tracking-[-0.15px] leading-5 hover:bg-[#f3f4f6] flex items-center gap-2.5">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4a5565" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              Edytuj nadgodziny
+            </button>
+            <button onClick={() => { const { empId, empName, day } = otContextMenu; setOtContextMenu(null); setConfirmModal({ title: "Usuń nadgodziny", message: "Czy na pewno chcesz usunąć nadgodziny dla " + empName + " (dzień " + day + ")?", onConfirm: () => { removeOT(empId, day); setConfirmModal(null); } }); }} className="w-full text-left px-3 py-2 text-[14px] text-[#e7000b] tracking-[-0.15px] leading-5 hover:bg-[#fef2f2] flex items-center gap-2.5">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e7000b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              Usuń nadgodziny
+            </button>
           </div>
         </div>
       )}
       {customModal && <CustomShiftModal empName={customModal.empName} day={customModal.day} initial={customModal.initial} remainingHours={customModal.remainingHours} onSave={val => { setShift(customModal.empId, customModal.day, val); setCustomModal(null); }} onClose={() => setCustomModal(null)} />}
       {overtimeModal && <OvertimeModal employees={employees} initial={overtimeModal} onSave={({ empId, day, value }) => { setOT({ empId, day, value }); setOvertimeModal(null); }} onClose={() => setOvertimeModal(null)} />}
       {noteModal && <NoteModal empName={noteModal.empName} day={noteModal.day} current={noteModal.current} onSave={saveNote} onClose={() => setNoteModal(null)} />}
+      {confirmModal && <ConfirmModal title={confirmModal.title} message={confirmModal.message} onConfirm={confirmModal.onConfirm} onClose={() => setConfirmModal(null)} />}
       {toasts.length > 0 && (
         <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-2">
           {toasts.map(t => (
