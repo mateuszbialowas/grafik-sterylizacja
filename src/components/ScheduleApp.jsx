@@ -25,22 +25,39 @@ const DEFAULT_EMPLOYEES = [
   { id: 9, name: "Irena Kozłowska" },
 ];
 
-const DEFAULT_TITLE = "Rozkład pracy Techników Sterylizacji - Centralna Sterylizacja";
-
 const monthKey = (y, m) => `grafik-${y}-${String(m).padStart(2, "0")}`;
 
 const emptyMonthData = () => ({ shifts: {}, overtime: {}, requests: {}, workingDaysOverride: null, normOverrides: {} });
 
+// Migrate flat "eid-day" keys to nested { eid: { day: val } }
+const migrateFlat = (obj) => {
+  if (!obj || typeof obj !== "object") return {};
+  const keys = Object.keys(obj);
+  if (keys.length === 0) return {};
+  if (!keys[0].includes("-")) return obj;
+  const nested = {};
+  for (const [key, val] of Object.entries(obj)) {
+    const i = key.indexOf("-");
+    const eid = key.slice(0, i);
+    const day = key.slice(i + 1);
+    if (!nested[eid]) nested[eid] = {};
+    nested[eid][day] = val;
+  }
+  return nested;
+};
+
 const loadMonthData = (y, m) => {
   try {
     const stored = localStorage.getItem(monthKey(y, m));
-    return stored ? JSON.parse(stored) : emptyMonthData();
+    if (!stored) return emptyMonthData();
+    const d = JSON.parse(stored);
+    return { ...d, shifts: migrateFlat(d.shifts), overtime: migrateFlat(d.overtime), requests: migrateFlat(d.requests) };
   } catch { return emptyMonthData(); }
 };
 
 export default function ScheduleApp() {
   const now = new Date();
-  const [shared, setShared] = useLocalStorage("grafik-shared", { employees: DEFAULT_EMPLOYEES, title: DEFAULT_TITLE });
+  const [shared, setShared] = useLocalStorage("grafik-shared", { employees: DEFAULT_EMPLOYEES });
   const [year, setYear] = useState(() => {
     try { const s = localStorage.getItem("grafik-current"); return s ? JSON.parse(s).year : now.getFullYear(); } catch { return now.getFullYear(); }
   });
@@ -56,13 +73,13 @@ export default function ScheduleApp() {
   useEffect(() => { localStorage.setItem(monthKey(year, month), JSON.stringify(monthData)); }, [year, month, monthData]);
 
   // Build combined data object for backwards-compat with JSON export/import and rest of component
-  const data = { year, month, title: shared.title, employees: shared.employees, ...monthData };
+  const data = { year, month, employees: shared.employees, ...monthData };
   const dataRef = useRef(data);
   dataRef.current = data;
 
   const setData = useCallback((updater) => {
     const next = typeof updater === "function" ? updater(dataRef.current) : updater;
-    setShared({ employees: next.employees, title: next.title });
+    setShared({ employees: next.employees });
     setMonthData({ shifts: next.shifts, overtime: next.overtime, requests: next.requests, workingDaysOverride: next.workingDaysOverride ?? null, normOverrides: next.normOverrides || {} });
   }, [setShared]);
   const [editingEmployee, setEditingEmployee] = useState(null);
@@ -77,6 +94,12 @@ export default function ScheduleApp() {
   const [customModal, setCustomModal] = useState(null);
   const [overtimeModal, setOvertimeModal] = useState(null);
   const [noteModal, setNoteModal] = useState(null);
+  const [toasts, setToasts] = useState([]);
+  const showToast = useCallback((message, type = "success") => {
+    const id = Date.now();
+    setToasts(t => [...t, { id, message, type }]);
+    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3000);
+  }, []);
 
   useEffect(() => {
     if (!showMoreMenu) return;
@@ -91,19 +114,19 @@ export default function ScheduleApp() {
   const workingDays = workingDaysOverride != null ? workingDaysOverride : autoWorkingDays;
   const monthlyNorm = workingDays * DAILY_NORM;
   const getEmpNorm = useCallback((eid) => normOverrides[eid] != null ? normOverrides[eid] : monthlyNorm, [normOverrides, monthlyNorm]);
-  const overtimeEmployeeIds = [...new Set(Object.keys(overtime).filter(k => overtime[k]).map(k => +k.split("-")[0]))];
+  const overtimeEmployeeIds = Object.keys(overtime).filter(eid => Object.values(overtime[eid] || {}).some(v => v)).map(Number);
 
-  const setShift = useCallback((eid, day, val) => { setData(p => ({ ...p, shifts: { ...p.shifts, [eid + "-" + day]: val } })); }, []);
+  const setShift = useCallback((eid, day, val) => { setData(p => ({ ...p, shifts: { ...p.shifts, [eid]: { ...p.shifts[eid], [day]: val } } })); }, []);
 
   const cycleShift = useCallback((eid, day) => {
-    const cur = shifts[eid + "-" + day] || "";
+    const cur = shifts[eid]?.[day] || "";
     if (cur.startsWith("C:")) { setShift(eid, day, ""); return; }
     const idx = SHIFT_CYCLE.indexOf(cur);
     setShift(eid, day, SHIFT_CYCLE[(idx + 1) % SHIFT_CYCLE.length]);
   }, [shifts, setShift]);
 
   const calcEmpHours = useCallback((eid, excl) => {
-    let h = 0; for (let d = 1; d <= daysInMonth; d++) { if (d === excl) continue; h += getShiftHours(shifts[eid + "-" + d]); } return h;
+    let h = 0; for (let d = 1; d <= daysInMonth; d++) { if (d === excl) continue; h += getShiftHours(shifts[eid]?.[d]); } return h;
   }, [shifts, daysInMonth]);
 
   const openContextMenu = useCallback((e, eid, day) => {
@@ -116,7 +139,7 @@ export default function ScheduleApp() {
     if (!contextMenu) return;
     const { empId, day } = contextMenu;
     if (action === "custom") {
-      const cur = shifts[empId + "-" + day] || "";
+      const cur = shifts[empId]?.[day] || "";
       const emp = employees.find(x => x.id === empId);
       const defs = getDefaultTimes(cur);
       setCustomModal({ empId, day, empName: emp?.name || "", initial: defs, remainingHours: getEmpNorm(empId) - calcEmpHours(empId, day) });
@@ -128,26 +151,25 @@ export default function ScheduleApp() {
 
   const handleRequestClick = useCallback((eid, day) => {
     const emp = employees.find(x => x.id === eid);
-    const key = eid + "-" + day;
-    setNoteModal({ empId: eid, day, empName: emp?.name || "", current: requests[key] || "" });
+    setNoteModal({ empId: eid, day, empName: emp?.name || "", current: requests[eid]?.[day] || "" });
   }, [requests, employees]);
 
   const saveNote = useCallback((note) => {
     if (!noteModal) return;
-    const key = noteModal.empId + "-" + noteModal.day;
+    const { empId, day } = noteModal;
     setData(p => {
-      const r = { ...p.requests };
-      if (note.trim()) r[key] = note.trim(); else delete r[key];
-      return { ...p, requests: r };
+      const empReqs = { ...p.requests[empId] };
+      if (note.trim()) empReqs[day] = note.trim(); else delete empReqs[day];
+      return { ...p, requests: { ...p.requests, [empId]: empReqs } };
     });
     setNoteModal(null);
   }, [noteModal]);
 
-  const setOT = useCallback(({ empId, day, value }) => { setData(p => ({ ...p, overtime: { ...p.overtime, [empId + "-" + day]: value } })); }, []);
-  const removeOT = useCallback((eid, day) => { setData(p => { const o = { ...p.overtime }; delete o[eid + "-" + day]; return { ...p, overtime: o }; }); }, []);
+  const setOT = useCallback(({ empId, day, value }) => { setData(p => ({ ...p, overtime: { ...p.overtime, [empId]: { ...p.overtime[empId], [day]: value } } })); }, []);
+  const removeOT = useCallback((eid, day) => { setData(p => { const empOt = { ...p.overtime[eid] }; delete empOt[day]; return { ...p, overtime: { ...p.overtime, [eid]: empOt } }; }); }, []);
 
-  const calcOT = (eid) => { let h = 0; for (let d = 1; d <= daysInMonth; d++) { const v = overtime[eid + "-" + d]; if (v) { const p = parseOvertimeVal(v); if (p) h += p.hours; } } return h; };
-  const calcHours = (eid) => { let h = 0; for (let d = 1; d <= daysInMonth; d++) h += getShiftHours(shifts[eid + "-" + d]); return h; };
+  const calcOT = (eid) => { let h = 0; for (let d = 1; d <= daysInMonth; d++) { const v = overtime[eid]?.[d]; if (v) { const p = parseOvertimeVal(v); if (p) h += p.hours; } } return h; };
+  const calcHours = (eid) => { let h = 0; for (let d = 1; d <= daysInMonth; d++) h += getShiftHours(shifts[eid]?.[d]); return h; };
   const addEmployee = () => { if (!newName.trim()) return; const mx = employees.reduce((m, e) => Math.max(m, e.id), 0); setData(p => ({ ...p, employees: [...p.employees, { id: mx + 1, name: newName.trim() }] })); setNewName(""); };
   const changeMonth = (delta) => {
     let newM = month + delta, newY = year;
@@ -163,12 +185,13 @@ export default function ScheduleApp() {
     try {
       const p = JSON.parse(s);
       if (p.employees) {
-        setShared({ employees: p.employees, title: p.title || shared.title });
+        setShared({ employees: p.employees });
         if (p.year != null) setYear(p.year);
         if (p.month != null) setMonth(p.month);
-        setMonthData({ shifts: p.shifts || {}, overtime: p.overtime || {}, requests: p.requests || {}, workingDaysOverride: p.workingDaysOverride ?? null, normOverrides: p.normOverrides || {} });
+        setMonthData({ shifts: migrateFlat(p.shifts || {}), overtime: migrateFlat(p.overtime || {}), requests: migrateFlat(p.requests || {}), workingDaysOverride: p.workingDaysOverride ?? null, normOverrides: p.normOverrides || {} });
+        showToast("Dane zaimportowane pomyślnie");
       }
-    } catch { alert("Nieprawidłowy JSON"); }
+    } catch { showToast("Nieprawidłowy plik JSON", "error"); }
   };
 
   const downloadJson = () => {
@@ -180,6 +203,7 @@ export default function ScheduleApp() {
     a.click();
     URL.revokeObjectURL(url);
     setShowMoreMenu(false);
+    showToast("Plik JSON został pobrany");
   };
 
   const handleImportFile = () => {
@@ -213,7 +237,7 @@ export default function ScheduleApp() {
       const diff = hrs - empNorm;
       const diffStr = (diff > 0 ? "+" : "") + formatHours(diff);
       const cells = days.map(d => {
-        const v = shifts[emp.id + "-" + d] || "";
+        const v = shifts[emp.id]?.[d] || "";
         const disp = getShiftDisplay(v);
         const we = isWeekend(year, month, d);
         const bg = v.startsWith("C:") ? "#fce7f3" : v === "D" ? "#dbeafe" : v === "D*" ? "#fef3c7" : v === "R" ? "#dcfce7" : we ? "#f3f4f6" : "#fff";
@@ -236,7 +260,7 @@ export default function ScheduleApp() {
       const otRows = employees.filter(emp => overtimeEmployeeIds.includes(emp.id)).map(emp => {
         const otH = calcOT(emp.id);
         const cells = days.map(d => {
-          const v = overtime[emp.id + "-" + d] || "";
+          const v = overtime[emp.id]?.[d] || "";
           if (!v) return '<td style="border:1px solid #999;padding:0;width:26px;min-width:26px;max-width:26px"></td>';
           const p = parseOvertimeVal(v);
           const top = p ? p.startH + ":" + String(p.startM).padStart(2,"0") : "";
@@ -249,7 +273,7 @@ export default function ScheduleApp() {
     }
 
     const html = '<!DOCTYPE html><html><head><title>Grafik - ' + MONTHS_PL[month] + ' ' + year + '</title><style>@page{size:landscape;margin:8mm}body{font-family:Arial,sans-serif;margin:0;padding:10px}table{border-collapse:collapse;width:100%}@media print{.no-print{display:none!important}}</style></head><body>'
-      + '<h2 style="font-size:18px;margin:0 0 4px">' + data.title + '</h2>'
+      + '<h2 style="font-size:18px;margin:0 0 4px">Rozkład pracy Techników Sterylizacji - Centralna Sterylizacja</h2>'
       + '<div style="font-size:14px;margin-bottom:8px;color:#3730a3"><b>Norma ' + MONTHS_PL[month] + ' ' + year + ': ' + norm + 'h</b> (' + workingDays + ' dni rob. x 7:35)</div>'
       + '<table style="border-collapse:collapse;table-layout:fixed"><thead><tr style="background:#f3f4f6"><th style="border:1px solid #999;padding:1px 4px;text-align:left;font-size:13px;width:110px">Pracownik</th><th style="border:1px solid #999;padding:0;text-align:center;font-size:12px;width:50px">Godz. do<br/>wyprac.</th>' + hdrCells + '<th style="border:1px solid #999;padding:0;text-align:center;font-size:12px;width:60px">Godz.<br/>wyprac.</th></tr></thead><tbody>' + rows + '</tbody></table>'
       + otHtml
@@ -272,7 +296,7 @@ export default function ScheduleApp() {
       <div className="w-fit">
         <div className="bg-white rounded-[10px] border border-[#e5e7eb] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_0px_rgba(0,0,0,0.1)] px-[13px] pt-[13px] pb-[13px] mb-3 flex flex-col gap-[12px]">
           <div className="flex items-center justify-between h-[32px]">
-            <h1 className="text-[16px] tracking-[-0.3125px] leading-[24px]">
+            <h1 className="text-[20px] tracking-[-0.45px] leading-[28px]">
               <span className="font-bold text-[#101828]">Rozkład pracy Techników Sterylizacji</span>
               <span className="font-normal text-[#6a7282]">- Centralna Sterylizacja</span>
             </h1>
@@ -393,7 +417,7 @@ export default function ScheduleApp() {
                       )}
                     </td>
                     {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => (
-                      <ShiftCell key={d} value={shifts[emp.id + "-" + d] || ""} isWeekendDay={isWeekend(year, month, d)} request={requests[emp.id + "-" + d] || ""} onClick={() => cycleShift(emp.id, d)} onContextMenu={e => openContextMenu(e, emp.id, d)} onShiftClick={() => handleRequestClick(emp.id, d)} />
+                      <ShiftCell key={d} value={shifts[emp.id]?.[d] || ""} isWeekendDay={isWeekend(year, month, d)} request={requests[emp.id]?.[d] || ""} onClick={() => cycleShift(emp.id, d)} onContextMenu={e => openContextMenu(e, emp.id, d)} onShiftClick={() => handleRequestClick(emp.id, d)} />
                     ))}
                     <td className="border border-[#e5e7eb] px-1 py-0 text-center bg-[#f9fafb]" style={{ width: 90, minWidth: 90 }}>
                       <div className="text-[16px] font-bold text-[#101828] tracking-[-0.31px] leading-6">{formatHours(hours)}h</div>
@@ -443,7 +467,7 @@ export default function ScheduleApp() {
                       <td className="border border-[#e5e7eb] px-1.5 py-0 sticky left-0 bg-white z-10 text-[16px] font-semibold text-[#101828] tracking-[-0.31px] leading-6" style={{ height: 45 }}>{emp.name}</td>
                       <td className="border border-[#e5e7eb] sticky left-[160px] bg-white z-10"></td>
                       {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => {
-                        const ex = overtime[emp.id + "-" + d];
+                        const ex = overtime[emp.id]?.[d];
                         return <OvertimeCell key={d} value={ex || ""} isWeekendDay={isWeekend(year, month, d)} onClick={() => {
                           if (ex) { if (window.confirm("Czy na pewno chcesz usunąć nadgodziny?")) removeOT(emp.id, d); }
                           else setOvertimeModal({ empId: emp.id, day: d, startH: 15, startM: 0, endH: 19, endM: 0 });
@@ -532,7 +556,7 @@ export default function ScheduleApp() {
             </button>
             <div className="mx-2 my-1 h-px bg-[#e5e7eb]" />
             <button onClick={() => handleContextMenuSelect(".")} className="w-full text-left px-3 py-2 text-[14px] text-[#101828] tracking-[-0.15px] leading-5 hover:bg-[#f3f4f6] flex items-center gap-2.5">
-              <span className="size-5 rounded bg-[#f3e8ff] text-[#6b21a8] text-[12px] font-bold flex items-center justify-center">●</span>
+              <span className="size-5 rounded bg-[#f3e8ff] text-[#6b21a8] text-[14px] font-bold flex items-center justify-center">•</span>
               Pod telefonem (.)
             </button>
             <button onClick={() => handleContextMenuSelect("custom")} className="w-full text-left px-3 py-2 text-[14px] text-[#4a5565] tracking-[-0.15px] leading-5 hover:bg-[#f3f4f6] flex items-center gap-2.5">
@@ -549,6 +573,18 @@ export default function ScheduleApp() {
       {customModal && <CustomShiftModal empName={customModal.empName} day={customModal.day} initial={customModal.initial} remainingHours={customModal.remainingHours} onSave={val => { setShift(customModal.empId, customModal.day, val); setCustomModal(null); }} onClose={() => setCustomModal(null)} />}
       {overtimeModal && <OvertimeModal employees={employees} initial={overtimeModal} onSave={({ empId, day, value }) => { setOT({ empId, day, value }); setOvertimeModal(null); }} onClose={() => setOvertimeModal(null)} />}
       {noteModal && <NoteModal empName={noteModal.empName} day={noteModal.day} current={noteModal.current} onSave={saveNote} onClose={() => setNoteModal(null)} />}
+      {toasts.length > 0 && (
+        <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-2">
+          {toasts.map(t => (
+            <div key={t.id} className={"flex items-center gap-2.5 px-4 py-3 rounded-[10px] shadow-[0px_4px_16px_rgba(0,0,0,0.12)] border text-[14px] font-medium tracking-[-0.15px] leading-5 animate-[fadeIn_0.2s_ease-out] " + (t.type === "error" ? "bg-[#fef2f2] border-[#fecaca] text-[#b91c1c]" : "bg-white border-[#e5e7eb] text-[#101828]")}>
+              {t.type === "error"
+                ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b91c1c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#016630" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>}
+              {t.message}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

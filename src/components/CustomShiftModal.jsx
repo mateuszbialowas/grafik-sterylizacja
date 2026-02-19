@@ -33,10 +33,10 @@ export default function CustomShiftModal({ onSave, onClose, initial, empName, da
             {Math.abs(remainingAfter) < 0.01 ? "Norma osiągnięta!" : remainingAfter > 0 ? "Brakuje " + formatHours(remainingAfter) + "h" : "Nadwyżka " + formatHours(Math.abs(remainingAfter)) + "h"}
           </div>}
         </div>
-        <div className="flex gap-3">
-          <button onClick={save} disabled={hours <= 0} className="h-10 px-5 bg-[#030213] text-white rounded-lg text-[14px] font-medium tracking-[-0.15px] leading-5 hover:bg-[#1a1a2e] disabled:opacity-40">Zapisz</button>
+        <div className="flex gap-3 justify-end">
           <button onClick={() => onSave("")} className="h-10 px-5 bg-white border border-[#e5e7eb] rounded-lg text-[14px] font-medium text-[#101828] tracking-[-0.15px] leading-5 hover:bg-[#f9fafb]">Wyczyść</button>
-          <button onClick={onClose} className="h-10 px-5 bg-white border border-[#e5e7eb] rounded-lg text-[14px] font-medium text-[#101828] tracking-[-0.15px] leading-5 hover:bg-[#f9fafb] ml-auto">Anuluj</button>
+          <button onClick={onClose} className="h-10 px-5 bg-white border border-[#e5e7eb] rounded-lg text-[14px] font-medium text-[#101828] tracking-[-0.15px] leading-5 hover:bg-[#f9fafb]">Anuluj</button>
+          <button onClick={save} disabled={hours <= 0} className="h-10 px-5 bg-[#030213] text-white rounded-lg text-[14px] font-medium tracking-[-0.15px] leading-5 hover:bg-[#1a1a2e] disabled:opacity-40">Zapisz</button>
         </div>
       </div>
     </div>

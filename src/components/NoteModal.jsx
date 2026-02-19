@@ -22,10 +22,10 @@ export default function NoteModal({ onSave, onClose, empName, day, current }) {
           />
           <p className="text-[12px] text-[#99a1af] mt-1.5">Enter aby zapisać, Shift+Enter nowa linia</p>
         </div>
-        <div className="flex gap-3">
-          <button onClick={() => onSave(note)} className="h-10 px-5 bg-[#030213] text-white rounded-lg text-[14px] font-medium tracking-[-0.15px] leading-5 hover:bg-[#1a1a2e]">Zapisz</button>
+        <div className="flex gap-3 justify-end">
           {current && <button onClick={() => onSave("")} className="h-10 px-5 bg-white border border-[#e7000b] rounded-lg text-[14px] font-medium text-[#e7000b] tracking-[-0.15px] leading-5 hover:bg-[#fef2f2]">Usuń notatkę</button>}
-          <button onClick={onClose} className="h-10 px-5 bg-white border border-[#e5e7eb] rounded-lg text-[14px] font-medium text-[#101828] tracking-[-0.15px] leading-5 hover:bg-[#f9fafb] ml-auto">Anuluj</button>
+          <button onClick={onClose} className="h-10 px-5 bg-white border border-[#e5e7eb] rounded-lg text-[14px] font-medium text-[#101828] tracking-[-0.15px] leading-5 hover:bg-[#f9fafb]">Anuluj</button>
+          <button onClick={() => onSave(note)} className="h-10 px-5 bg-[#030213] text-white rounded-lg text-[14px] font-medium tracking-[-0.15px] leading-5 hover:bg-[#1a1a2e]">Zapisz</button>
         </div>
       </div>
     </div>
