@@ -14,13 +14,19 @@ export function formatHours(h) {
   return mins > 0 ? sign + hrs + ":" + String(mins).padStart(2, "0") : sign + hrs;
 }
 
+function calcHourSpan(sh, sm, eh, em) {
+  const start = sh + (sm || 0) / 60;
+  const end = eh + (em || 0) / 60;
+  return end > start ? end - start : 24 - start + end;
+}
+
 export function parseCustomShift(val) {
   if (!val || !val.startsWith("C:")) return null;
   const parts = val.slice(2).split("-");
   if (parts.length !== 2) return null;
   const [sh, sm] = parts[0].split(":").map(Number);
   const [eh, em] = parts[1].split(":").map(Number);
-  return { startH: sh, startM: sm || 0, endH: eh, endM: em || 0, hours: (eh + (em || 0) / 60) - (sh + (sm || 0) / 60) };
+  return { startH: sh, startM: sm || 0, endH: eh, endM: em || 0, hours: calcHourSpan(sh, sm, eh, em) };
 }
 
 export function parseOvertimeVal(val) {
@@ -29,7 +35,7 @@ export function parseOvertimeVal(val) {
   if (parts.length !== 2) return null;
   const [sh, sm] = parts[0].split(":").map(Number);
   const [eh, em] = parts[1].split(":").map(Number);
-  return { startH: sh, startM: sm || 0, endH: eh, endM: em || 0, hours: (eh + (em || 0) / 60) - (sh + (sm || 0) / 60) };
+  return { startH: sh, startM: sm || 0, endH: eh, endM: em || 0, hours: calcHourSpan(sh, sm, eh, em) };
 }
 
 export function getShiftHours(val) {

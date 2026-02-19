@@ -11,7 +11,9 @@ export default function OvertimeModal({ onSave, onClose, employees, initial }) {
   const [endM, setEndM] = useState(initial?.endM ?? 0);
   const ref = useRef(null);
   useEffect(() => { ref.current?.focus(); }, []);
-  const hours = (endH + endM / 60) - (startH + startM / 60);
+  const start = startH + startM / 60;
+  const end = endH + endM / 60;
+  const hours = start === end ? 0 : end > start ? end - start : 24 - start + end;
   const save = () => { if (hours > 0 && empId) onSave({ empId, day, value: startH + ":" + String(startM).padStart(2,"0") + "-" + endH + ":" + String(endM).padStart(2,"0") }); };
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={onClose}>

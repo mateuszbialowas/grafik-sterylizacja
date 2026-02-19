@@ -9,7 +9,9 @@ export default function CustomShiftModal({ onSave, onClose, initial, empName, da
   const [endM, setEndM] = useState(initial.endM);
   const ref = useRef(null);
   useEffect(() => { ref.current?.focus(); }, []);
-  const hours = (endH + endM / 60) - (startH + startM / 60);
+  const start = startH + startM / 60;
+  const end = endH + endM / 60;
+  const hours = start === end ? 0 : end > start ? end - start : 24 - start + end;
   const remainingAfter = remainingHours - hours;
   const save = () => { if (hours > 0) onSave("C:" + startH + ":" + String(startM).padStart(2,"0") + "-" + endH + ":" + String(endM).padStart(2,"0")); };
   return (
