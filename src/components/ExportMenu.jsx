@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { useSchedule } from "../hooks/useSchedule";
 import { MONTHS_PL } from "../constants";
-import { IconMoreVertical, IconDownload, IconUpload, IconCode } from "./Icons";
+import { IconMoreVertical, IconDownload, IconUpload, IconCode, IconTrash } from "./Icons";
 
 export default function ExportMenu({ showJson, setShowJson }) {
-  const { year, month, exportJson, importJson, showToast } = useSchedule();
+  const { year, month, exportJson, importJson, clearAllData, showToast, setConfirmModal } = useSchedule();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -61,6 +61,19 @@ export default function ExportMenu({ showJson, setShowJson }) {
           <button onClick={() => { setShowJson(!showJson); setOpen(false); }} className="w-full text-left px-3 py-2 text-[14px] text-gray-900 tracking-[-0.15px] leading-5 hover:bg-gray-100 flex items-center gap-2.5">
             <IconCode />
             {showJson ? "Ukryj JSON" : "Zobacz JSON"}
+          </button>
+          <div className="mx-2 my-1 h-px bg-gray-200" />
+          <button onClick={() => {
+            setOpen(false);
+            setConfirmModal({
+              title: "Wyczyścić wszystkie dane?",
+              message: "Ta operacja usunie wszystkich pracowników, zmiany, nadgodziny i notatki ze wszystkich miesięcy. Tej operacji nie można cofnąć.",
+              confirmLabel: "Wyczyść dane",
+              onConfirm: () => { clearAllData(); setConfirmModal(null); },
+            });
+          }} className="w-full text-left px-3 py-2 text-[14px] text-red-600 tracking-[-0.15px] leading-5 hover:bg-red-50 flex items-center gap-2.5">
+            <IconTrash />
+            Wyczyść wszystkie dane
           </button>
         </div>
       )}

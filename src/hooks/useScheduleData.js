@@ -126,7 +126,7 @@ export default function useScheduleData(showToast) {
   }, [setData]);
 
   // Import/Export
-  const { exportJson, importJson, getCustomModalData } = useImportExport({
+  const { exportJson, importJson, getCustomModalData, clearAllData } = useImportExport({
     dataRef: { get current() { return { ...dataRef.current, daysInMonth, workingDays }; } },
     setShared,
     setYear,
@@ -140,6 +140,6 @@ export default function useScheduleData(showToast) {
     daysInMonth, autoWorkingDays, workingDays, monthlyNorm, overtimeEmployeeIds, allNormsOk,
     setData, setShift, cycleShift, setOT, removeOT, saveNote, addEmployee, changeMonth,
     getEmpNorm, calcHours, calcEmpHours, calcOT,
-    exportJson, importJson, getCustomModalData,
+    exportJson, importJson, getCustomModalData, clearAllData,
   };
 }

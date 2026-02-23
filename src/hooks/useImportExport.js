@@ -108,5 +108,21 @@ export default function useImportExport({ dataRef, setShared, setYear, setMonth,
     };
   }, [dataRef]);
 
-  return { exportJson, importJson, getCustomModalData };
+  const clearAllData = useCallback(() => {
+    Object.keys(localStorage)
+      .filter(key => key.startsWith("grafik-"))
+      .forEach(key => localStorage.removeItem(key));
+
+    setShared({ employees: [] });
+    setMonthData({
+      shifts: {},
+      overtime: {},
+      requests: {},
+      workingDaysOverride: null,
+      normOverrides: {},
+    });
+    showToast("Wszystkie dane zostały wyczyszczone");
+  }, [setShared, setMonthData, showToast]);
+
+  return { exportJson, importJson, getCustomModalData, clearAllData };
 }
