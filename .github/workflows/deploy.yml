@@ -34,7 +34,9 @@ jobs:
         run: npm run docs:build
 
       - name: Copy app into docs output
-        run: cp -r dist/ docs/.vitepress/dist/app/
+        run: |
+          cp -r dist/ docs/.vitepress/dist/app/
+          cp dist/index.html docs/.vitepress/dist/grafik-sterylizacja.html
 
       - uses: actions/upload-pages-artifact@v3
         with:
