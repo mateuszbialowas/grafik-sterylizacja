@@ -123,6 +123,12 @@ export default defineConfig({
     },
     socialLinks: [
       { icon: 'github', link: 'https://github.com/mateuszbialowas/grafik-sterylizacja' },
+      { icon: 'linkedin', link: 'https://www.linkedin.com/in/mateuszbialowas/' },
+      { icon: 'instagram', link: 'https://www.instagram.com/mateusz_bialowas/' },
     ],
+    footer: {
+      message: 'Crafted with <span style="color:#ef4444">&#9829;</span> and too much coffee by <a href="https://www.linkedin.com/in/mateuszbialowas/" target="_blank">Mateusz Bialowas</a>',
+      copyright: '<a href="https://www.linkedin.com/in/mateuszbialowas/" target="_blank">LinkedIn</a> · <a href="https://www.instagram.com/mateusz_bialowas/" target="_blank">Instagram</a> · <a href="https://github.com/mateuszbialowas" target="_blank">GitHub</a>',
+    },
   },
 })
