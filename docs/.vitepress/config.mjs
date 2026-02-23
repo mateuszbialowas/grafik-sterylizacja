@@ -16,7 +16,7 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: 'Przewodnik', link: '/guide/getting-started' },
-          { text: 'Pobierz', link: '/grafik-sterylizacja/grafik-sterylizacja.html' },
+          { text: 'Pobierz', link: '/grafik-sterylizacja.html' },
           { text: 'Aplikacja', link: '/app/', target: '_blank' },
         ],
         sidebar: [
@@ -52,7 +52,7 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: 'Guide', link: '/en/guide/getting-started' },
-          { text: 'Download', link: '/grafik-sterylizacja/grafik-sterylizacja.html' },
+          { text: 'Download', link: '/grafik-sterylizacja.html' },
           { text: 'Live App', link: '/app/', target: '_blank' },
         ],
         sidebar: [

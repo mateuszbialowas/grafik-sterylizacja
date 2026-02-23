@@ -14,7 +14,7 @@ hero:
       target: _blank
     - theme: alt
       text: Pobierz aplikację
-      link: /grafik-sterylizacja/grafik-sterylizacja.html
+      link: /grafik-sterylizacja.html
     - theme: alt
       text: Przewodnik
       link: /guide/getting-started

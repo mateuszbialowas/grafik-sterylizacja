@@ -6,7 +6,7 @@ export default {
   extends: DefaultTheme,
   setup() {
     onMounted(() => {
-      document.querySelectorAll('a[href*="grafik-sterylizacja.html"]').forEach((el) => {
+      document.querySelectorAll('a[href$="grafik-sterylizacja.html"]').forEach((el) => {
         el.setAttribute('download', 'grafik-sterylizacja.html')
       })
     })
