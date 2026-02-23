@@ -1,4 +1,4 @@
-import { useSchedule } from "../context/ScheduleContext";
+import { useSchedule } from "../hooks/useSchedule";
 import CustomShiftModal from "./CustomShiftModal";
 import OvertimeModal from "./OvertimeModal";
 import NoteModal from "./NoteModal";

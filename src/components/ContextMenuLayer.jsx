@@ -1,7 +1,8 @@
 import { useCallback } from "react";
-import { useSchedule } from "../context/ScheduleContext";
+import { useSchedule } from "../hooks/useSchedule";
 import { ContextMenuOverlay, MenuItem } from "./ContextMenu";
 import ShiftContextMenu from "./ShiftContextMenu";
+import { IconEdit, IconTrash } from "./Icons";
 
 export default function ContextMenuLayer() {
   const {
@@ -55,7 +56,7 @@ export default function ContextMenuLayer() {
           setEditingEmployeeId(empMenu.empId);
           closeEmpMenu();
         }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4a5565" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          <IconEdit />
           Edytuj nazwisko
         </MenuItem>
         <MenuItem onClick={() => {
@@ -76,7 +77,7 @@ export default function ContextMenuLayer() {
             },
           });
         }} destructive>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e7000b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          <IconTrash />
           Usuń pracownika
         </MenuItem>
       </ContextMenuOverlay>
@@ -87,7 +88,7 @@ export default function ContextMenuLayer() {
           setOvertimeModal({ empId, day, startH: parsed?.startH ?? 15, startM: parsed?.startM ?? 0, endH: parsed?.endH ?? 19, endM: parsed?.endM ?? 0 });
           closeOtMenu();
         }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4a5565" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          <IconEdit />
           Edytuj nadgodziny
         </MenuItem>
         <MenuItem onClick={() => {
@@ -99,7 +100,7 @@ export default function ContextMenuLayer() {
             onConfirm: () => { removeOT(empId, day); setConfirmModal(null); },
           });
         }} destructive>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e7000b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          <IconTrash />
           Usuń nadgodziny
         </MenuItem>
       </ContextMenuOverlay>

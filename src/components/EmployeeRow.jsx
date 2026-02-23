@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { useSchedule } from "../context/ScheduleContext";
+import { useSchedule } from "../hooks/useSchedule";
 import { isWeekend, formatHours } from "../utils";
 import { COL_WIDTH, ROW_HEIGHT } from "../constants";
 import ShiftCell from "./ShiftCell";
@@ -33,7 +33,7 @@ export default function EmployeeRow({ employee }) {
   return (
     <tr>
       <td
-        className="border border-[#e5e7eb] px-1.5 py-0 sticky left-0 bg-white z-20 overflow-hidden"
+        className="border border-gray-200 px-1.5 py-0 sticky left-0 bg-white z-20 overflow-hidden"
         style={{ width: COL_WIDTH.name, minWidth: COL_WIDTH.name, maxWidth: COL_WIDTH.name, height: ROW_HEIGHT.employee }}
         onContextMenu={e => {
           e.preventDefault();
@@ -45,7 +45,7 @@ export default function EmployeeRow({ employee }) {
           <input
             autoFocus
             defaultValue={employee.name}
-            className="border border-[#e5e7eb] rounded px-1 py-0.5 text-[13px] w-full outline-none"
+            className="border border-gray-200 rounded px-1 py-0.5 text-[13px] w-full outline-none"
             onBlur={e => {
               const val = e.target.value.trim();
               if (val) setData(prev => ({ ...prev, employees: prev.employees.map(emp => emp.id === employee.id ? { ...emp, name: val } : emp) }));
@@ -55,13 +55,13 @@ export default function EmployeeRow({ employee }) {
           />
         ) : (
           <Tooltip text="Prawy klik: edytuj / usuń">
-            <div className="text-[15px] font-semibold text-[#101828] tracking-[-0.25px] leading-5 truncate">{employee.name}</div>
+            <div className="text-[15px] font-semibold text-gray-900 tracking-[-0.25px] leading-5 truncate">{employee.name}</div>
           </Tooltip>
         )}
       </td>
 
       <td
-        className="border border-[#e5e7eb] px-0 py-0 text-center bg-white cursor-pointer"
+        className="border border-gray-200 px-0 py-0 text-center bg-white cursor-pointer"
         style={{ width: COL_WIDTH.norm, minWidth: COL_WIDTH.norm }}
         onContextMenu={e => { e.preventDefault(); setIsEditingNorm(true); }}
       >
@@ -69,7 +69,7 @@ export default function EmployeeRow({ employee }) {
           <input
             autoFocus
             defaultValue={formatHours(empNorm)}
-            className="border border-[#e5e7eb] rounded px-0.5 py-0.5 text-[13px] w-14 text-center outline-none"
+            className="border border-gray-200 rounded px-0.5 py-0.5 text-[13px] w-14 text-center outline-none"
             onBlur={e => {
               const raw = e.target.value.trim();
               let value;
@@ -108,9 +108,9 @@ export default function EmployeeRow({ employee }) {
         />
       ))}
 
-      <td className="border border-[#e5e7eb] px-0.5 py-0 text-center bg-[#f9fafb]" style={{ width: COL_WIDTH.summary, minWidth: COL_WIDTH.summary }}>
-        <div className="text-[14px] font-bold text-[#101828] tracking-[-0.2px] leading-5">{formatHours(hours)}h</div>
-        <div className={"text-[13px] font-semibold tracking-[-0.15px] leading-4 " + (Math.abs(diff) < 0.01 ? "text-green-600" : diff > 0 ? "text-amber-600" : "text-[#e7000b]")}>
+      <td className="border border-gray-200 px-0.5 py-0 text-center bg-gray-50" style={{ width: COL_WIDTH.summary, minWidth: COL_WIDTH.summary }}>
+        <div className="text-[14px] font-bold text-gray-900 tracking-[-0.2px] leading-5">{formatHours(hours)}h</div>
+        <div className={"text-[13px] font-semibold tracking-[-0.15px] leading-4 " + (Math.abs(diff) < 0.01 ? "text-green-600" : diff > 0 ? "text-amber-600" : "text-red-600")}>
           {Math.abs(diff) < 0.01 ? "OK" : (diff > 0 ? "+" : "") + formatHours(diff)}
         </div>
       </td>

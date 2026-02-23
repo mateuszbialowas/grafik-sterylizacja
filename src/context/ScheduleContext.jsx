@@ -1,10 +1,8 @@
-import { createContext, useContext } from "react";
+import { ScheduleContext } from "../hooks/useSchedule";
 import useScheduleData from "../hooks/useScheduleData";
 import useToasts from "../hooks/useToasts";
 import useModals from "../hooks/useModals";
 import useContextMenu from "../hooks/useContextMenu";
-
-const ScheduleContext = createContext(null);
 
 export function ScheduleProvider({ children }) {
   const { toasts, showToast } = useToasts();
@@ -28,10 +26,4 @@ export function ScheduleProvider({ children }) {
       {children}
     </ScheduleContext.Provider>
   );
-}
-
-export function useSchedule() {
-  const ctx = useContext(ScheduleContext);
-  if (!ctx) throw new Error("useSchedule must be used within ScheduleProvider");
-  return ctx;
 }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useSchedule } from "../context/ScheduleContext";
+import { useSchedule } from "../hooks/useSchedule";
 
 export default function AddEmployeeRow() {
   const { daysInMonth, addEmployee } = useSchedule();
@@ -13,7 +13,7 @@ export default function AddEmployeeRow() {
 
   return (
     <tr>
-      <td className="border border-[#e5e7eb]" colSpan={daysInMonth + 3} style={{ height: 44, padding: 0 }}>
+      <td className="border border-gray-200" colSpan={daysInMonth + 3} style={{ height: 44, padding: 0 }}>
         <div className="sticky left-0 px-2 py-1.5" style={{ width: 'min(100%, calc(100vw - 1rem))' }}>
           <div className="flex gap-2 items-center">
             <input
