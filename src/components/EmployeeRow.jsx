@@ -33,7 +33,7 @@ export default function EmployeeRow({ employee }) {
   return (
     <tr>
       <td
-        className="border border-gray-200 px-1.5 py-0 sticky left-0 bg-white z-20 overflow-hidden"
+        className="border border-gray-200 px-1.5 py-0 sticky left-0 bg-white z-20"
         style={{ width: COL_WIDTH.name, minWidth: COL_WIDTH.name, maxWidth: COL_WIDTH.name, height: ROW_HEIGHT.employee }}
         onContextMenu={e => {
           e.preventDefault();

@@ -1,12 +1,23 @@
+import { useCallback } from "react";
 import { useSchedule } from "../hooks/useSchedule";
 import { isWeekend } from "../utils";
 import { DAY_NAMES_PL, COL_WIDTH, ROW_HEIGHT } from "../constants";
+import { DEFAULT_EMPLOYEES, DEFAULT_MONTH_DATA } from "../defaultData";
 import EmployeeRow from "./EmployeeRow";
 import AddEmployeeRow from "./AddEmployeeRow";
 import OvertimeSection from "./OvertimeSection";
 
 export default function ScheduleTable() {
-  const { year, month, employees, daysInMonth } = useSchedule();
+  const { year, month, employees, daysInMonth, importJson } = useSchedule();
+
+  const loadSampleData = useCallback(() => {
+    importJson(JSON.stringify({
+      year: 2026,
+      month: 1,
+      employees: DEFAULT_EMPLOYEES,
+      ...DEFAULT_MONTH_DATA,
+    }));
+  }, [importJson]);
 
   return (
     <div className="bg-white rounded-[14px] border border-gray-200 shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)] overflow-x-auto overflow-y-hidden">
@@ -41,6 +52,23 @@ export default function ScheduleTable() {
           {employees.map(emp => (
             <EmployeeRow key={emp.id} employee={emp} />
           ))}
+          {employees.length === 0 && (
+            <tr>
+              <td className="border border-gray-200" colSpan={daysInMonth + 3}>
+                <div className="sticky left-0 flex flex-col items-center justify-center py-10 gap-3" style={{ width: "min(100%, calc(100vw - 1rem))" }}>
+                  <p className="text-[15px] text-gray-500 tracking-[-0.15px]">
+                    Brak pracowników. Dodaj pierwszego poniżej lub załaduj przykładowe dane.
+                  </p>
+                  <button
+                    onClick={loadSampleData}
+                    className="h-8 px-4 bg-gray-950 text-white text-[13px] font-medium tracking-[-0.15px] rounded-lg hover:bg-gray-900"
+                  >
+                    Załaduj przykładowe dane
+                  </button>
+                </div>
+              </td>
+            </tr>
+          )}
           <AddEmployeeRow />
           <OvertimeSection />
         </tbody>
