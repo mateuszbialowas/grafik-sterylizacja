@@ -16,6 +16,13 @@ export default defineConfig({
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:title', content: 'Grafik Sterylizacja' }],
     ['meta', { property: 'og:description', content: 'Aplikacja do zarządzania grafikiem pracy techników sterylizacji' }],
+    ['meta', { property: 'og:image', content: 'https://mateuszbialowas.github.io/grafik-sterylizacja/og-image.png' }],
+    ['meta', { property: 'og:url', content: 'https://mateuszbialowas.github.io/grafik-sterylizacja/' }],
+    ['meta', { property: 'og:site_name', content: 'Grafik Sterylizacja' }],
+    ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+    ['meta', { name: 'twitter:title', content: 'Grafik Sterylizacja' }],
+    ['meta', { name: 'twitter:description', content: 'Aplikacja do zarządzania grafikiem pracy techników sterylizacji' }],
+    ['meta', { name: 'twitter:image', content: 'https://mateuszbialowas.github.io/grafik-sterylizacja/og-image.png' }],
   ],
 
   locales: {
