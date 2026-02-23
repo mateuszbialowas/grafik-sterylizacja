@@ -5,16 +5,8 @@ import useLocalStorage from "./useLocalStorage";
 import useMonthNavigation from "./useMonthNavigation";
 import useImportExport from "./useImportExport";
 
-const DEFAULT_EMPLOYEES = [
-  { id: 1, name: "Anna Nowak" }, { id: 2, name: "Beata Kowalska" },
-  { id: 3, name: "Celina Wiśniewska" }, { id: 4, name: "Dorota Wójcik" },
-  { id: 5, name: "Elżbieta Zielińska" }, { id: 6, name: "Franciszka Szymańska" },
-  { id: 7, name: "Grażyna Lewandowska" }, { id: 8, name: "Halina Dąbrowska" },
-  { id: 9, name: "Irena Kozłowska" },
-];
-
 export default function useScheduleData(showToast) {
-  const [shared, setShared] = useLocalStorage("grafik-shared", { employees: DEFAULT_EMPLOYEES });
+  const [shared, setShared] = useLocalStorage("grafik-shared", { employees: [] });
   const { year, setYear, month, setMonth, monthData, setMonthData, changeMonth } = useMonthNavigation();
 
   // Composed data object
