@@ -1,4 +1,14 @@
+---
+outline: [2, 3]
+---
+
 # Rozpoczęcie pracy
+
+::: tip Szybki start
+Nie musisz nic instalować, aby korzystać z aplikacji. Po prostu [pobierz plik HTML](/grafik-sterylizacja.html) lub [otwórz aplikację online](/app/).
+
+Poniższe instrukcje dotyczą uruchomienia środowiska deweloperskiego.
+:::
 
 ## Wymagania
 
@@ -44,4 +54,6 @@ npm run lint
 | **Tailwind CSS** 4 | Stylowanie |
 | **vite-plugin-singlefile** | Pakowanie do jednego pliku HTML |
 
-Brak zewnętrznych bibliotek UI, backendu ani bazy danych. Czysta aplikacja kliencka React + localStorage.
+::: info Brak zależności zewnętrznych
+Aplikacja nie korzysta z żadnych zewnętrznych bibliotek UI, backendu ani bazy danych. Czysta aplikacja kliencka React + localStorage.
+:::

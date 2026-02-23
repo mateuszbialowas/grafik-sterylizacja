@@ -1,3 +1,7 @@
+---
+outline: [2, 3]
+---
+
 # Data Storage
 
 All data is persisted in the browser's `localStorage`. No server or database is required.
@@ -22,6 +26,10 @@ Data can be exported to a JSON file via the export menu. This allows you to:
 
 ## Important
 
-::: warning Note
-localStorage data is tied to a specific browser and domain. Clearing browser data will delete all schedules. Back up regularly using the export feature.
+::: warning Heads up — local data
+localStorage data is tied to a specific browser and domain. Clearing browser data will delete all schedules.
+:::
+
+::: tip Regular backups
+We recommend regularly backing up via the JSON export feature, especially before the end of each month.
 :::

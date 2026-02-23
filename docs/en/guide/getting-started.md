@@ -1,4 +1,14 @@
+---
+outline: [2, 3]
+---
+
 # Getting Started
+
+::: tip Quick Start
+You don't need to install anything to use the app. Just [download the HTML file](/grafik-sterylizacja.html) or [open the app online](/app/).
+
+The instructions below are for setting up the development environment.
+:::
 
 ## Prerequisites
 
@@ -44,4 +54,6 @@ npm run lint
 | **Tailwind CSS** 4 | Styling |
 | **vite-plugin-singlefile** | Bundles everything into one HTML file |
 
-No external UI libraries, backend, or database. Pure client-side React + localStorage.
+::: info No external dependencies
+The app uses no external UI libraries, backend, or database. Pure client-side React + localStorage.
+:::

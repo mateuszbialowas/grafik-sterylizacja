@@ -1,3 +1,7 @@
+---
+outline: [2, 3]
+---
+
 # Przechowywanie danych
 
 Wszystkie dane są przechowywane w `localStorage` przeglądarki. Nie jest wymagany serwer ani baza danych.
@@ -22,6 +26,10 @@ Dane można wyeksportować do pliku JSON za pomocą menu eksportu. Pozwala to na
 
 ## Ważne informacje
 
-::: warning Uwaga
-Dane localStorage są powiązane z konkretną przeglądarką i domeną. Wyczyszczenie danych przeglądarki spowoduje utratę grafików. Regularnie twórz kopie zapasowe za pomocą funkcji eksportu.
+::: warning Uwaga — dane lokalne
+Dane localStorage są powiązane z konkretną przeglądarką i domeną. Wyczyszczenie danych przeglądarki spowoduje utratę grafików.
+:::
+
+::: tip Regularne kopie zapasowe
+Zalecamy regularne tworzenie kopii zapasowych za pomocą funkcji eksportu JSON, szczególnie przed końcem miesiąca.
 :::

@@ -1,19 +1,22 @@
+/* ===== Brand Colors (match app's #3B82F6 blue) ===== */
 :root {
-  /* Match app's primary blue #3B82F6 */
   --vp-c-brand-1: #3B82F6;
   --vp-c-brand-2: #2563EB;
   --vp-c-brand-3: #1D4ED8;
   --vp-c-brand-soft: rgba(59, 130, 246, 0.14);
 
-  /* Tip boxes use the app's green */
   --vp-c-tip-1: #016630;
   --vp-c-tip-2: #016630;
   --vp-c-tip-soft: rgba(220, 252, 231, 0.4);
 
-  /* Warning boxes use the app's amber */
-  --vp-c-warning-1: #973c00;
-  --vp-c-warning-2: #973c00;
+  --vp-c-warning-1: #92400e;
+  --vp-c-warning-2: #92400e;
   --vp-c-warning-soft: rgba(254, 243, 198, 0.4);
+
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(135deg, #1D4ED8, #3B82F6, #60A5FA);
+  --vp-home-hero-image-background-image: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(29,78,216,0.08));
+  --vp-home-hero-image-filter: blur(56px);
 }
 
 .dark {
@@ -21,34 +24,171 @@
   --vp-c-brand-2: #3B82F6;
   --vp-c-brand-3: #2563EB;
   --vp-c-brand-soft: rgba(59, 130, 246, 0.16);
+
+  --vp-home-hero-name-background: linear-gradient(135deg, #60A5FA, #93C5FD, #BFDBFE);
+  --vp-home-hero-image-background-image: linear-gradient(135deg, rgba(96,165,250,0.25), rgba(59,130,246,0.12));
 }
 
-/* Hero section polish */
+/* ===== Hero Section ===== */
 .VPHero .VPImage {
   border-radius: 12px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 4px 12px rgba(0, 0, 0, 0.06),
+    0 12px 36px rgba(0, 0, 0, 0.06);
   border: 1px solid var(--vp-c-divider);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Feature cards */
+.VPHero .VPImage:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.04),
+    0 8px 20px rgba(0, 0, 0, 0.08),
+    0 20px 48px rgba(0, 0, 0, 0.08);
+}
+
+.VPHero .tagline {
+  max-width: 520px;
+}
+
+/* Brand button glow */
+.VPButton.brand {
+  box-shadow: 0 2px 12px rgba(59, 130, 246, 0.25);
+  transition: box-shadow 0.25s ease, background-color 0.25s ease;
+}
+
+.VPButton.brand:hover {
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.35);
+}
+
+/* ===== Feature Cards ===== */
 .VPFeature {
   border-color: var(--vp-c-divider) !important;
-  transition: border-color 0.25s, box-shadow 0.25s;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
 }
 
 .VPFeature:hover {
   border-color: var(--vp-c-brand-1) !important;
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
+  transform: translateY(-2px);
+}
+
+.VPFeature .icon {
+  font-size: 1.5rem;
+}
+
+.VPFeature .title {
+  font-weight: 600 !important;
+}
+
+/* ===== Doc Content ===== */
+
+/* Screenshots with nice presentation */
+.vp-doc img {
+  border-radius: 10px;
+  border: 1px solid var(--vp-c-divider);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 4px 12px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.25s ease;
+}
+
+.vp-doc img:hover {
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.06),
+    0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* Better table styling */
+.vp-doc table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.vp-doc th {
+  background: var(--vp-c-brand-soft) !important;
+  font-weight: 600;
+}
+
+/* Better inline code */
+.vp-doc :not(pre) > code {
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.9em;
+  background: var(--vp-c-brand-soft);
+  color: var(--vp-c-brand-2);
+}
+
+.dark .vp-doc :not(pre) > code {
+  color: var(--vp-c-brand-1);
+}
+
+/* Code blocks */
+.vp-doc div[class*="language-"] {
+  border-radius: 10px;
+  border: 1px solid var(--vp-c-divider);
+}
+
+/* ===== Nav & Sidebar ===== */
+
+/* Logo */
+.VPNavBarTitle .logo {
+  border-radius: 8px;
+}
+
+/* Active sidebar item accent */
+.VPSidebarItem.is-active > .item .link > .text {
+  font-weight: 600;
+}
+
+/* ===== Custom Containers ===== */
+.vp-doc .custom-block {
+  border-radius: 10px;
+}
+
+.vp-doc .custom-block.tip {
+  border-left: 4px solid #16a34a;
+}
+
+.vp-doc .custom-block.warning {
+  border-left: 4px solid #d97706;
+}
+
+.vp-doc .custom-block.danger {
+  border-left: 4px solid #dc2626;
+}
+
+.vp-doc .custom-block.info {
+  border-left: 4px solid var(--vp-c-brand-1);
+}
+
+/* ===== Footer ===== */
+.VPDocFooter .prev-next .pager-link {
+  border-radius: 10px;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.VPDocFooter .prev-next .pager-link:hover {
+  border-color: var(--vp-c-brand-1);
   box-shadow: 0 2px 12px rgba(59, 130, 246, 0.08);
 }
 
-/* Screenshot images in docs */
-.vp-doc img {
-  border-radius: 8px;
-  border: 1px solid var(--vp-c-divider);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-/* Nav logo styling */
-.VPNavBarTitle .logo {
-  border-radius: 6px;
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--vp-c-divider);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--vp-c-text-3);
 }
