@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Modal from "./Modal";
+import Button from "./Button";
 import TimeSelect from "./TimeSelect";
 import { formatHours, formatTimeRange, calcHourSpan } from "../utils";
 
@@ -34,9 +35,9 @@ export default function CustomShiftModal({ onSave, onClose, initial, empName, da
         </div>}
       </div>
       <div className="flex gap-3 justify-end">
-        <button onClick={() => onSave("")} className="h-10 px-5 bg-white border border-gray-200 rounded-lg text-[14px] font-medium text-gray-900 tracking-[-0.15px] leading-5 hover:bg-gray-50">Wyczyść</button>
-        <button onClick={onClose} className="h-10 px-5 bg-white border border-gray-200 rounded-lg text-[14px] font-medium text-gray-900 tracking-[-0.15px] leading-5 hover:bg-gray-50">Anuluj</button>
-        <button onClick={save} disabled={hours <= 0} className="h-10 px-5 bg-[#030213] text-white rounded-lg text-[14px] font-medium tracking-[-0.15px] leading-5 hover:bg-[#1a1a2e] disabled:opacity-40">Zapisz</button>
+        <Button onClick={() => onSave("")}>Wyczyść</Button>
+        <Button onClick={onClose}>Anuluj</Button>
+        <Button variant="primary" onClick={save} disabled={hours <= 0}>Zapisz</Button>
       </div>
     </Modal>
   );

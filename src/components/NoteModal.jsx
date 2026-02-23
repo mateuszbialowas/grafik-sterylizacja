@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import Modal from "./Modal";
+import Button from "./Button";
 
 export default function NoteModal({ onSave, onClose, empName, day, current }) {
   const [note, setNote] = useState(current);
@@ -24,9 +25,9 @@ export default function NoteModal({ onSave, onClose, empName, day, current }) {
         <p className="text-[12px] text-gray-400 mt-1.5">Enter aby zapisać, Shift+Enter nowa linia</p>
       </div>
       <div className="flex gap-3 justify-end">
-        {current && <button onClick={() => onSave("")} className="h-10 px-5 bg-white border border-red-600 rounded-lg text-[14px] font-medium text-red-600 tracking-[-0.15px] leading-5 hover:bg-red-50">Usuń notatkę</button>}
-        <button onClick={onClose} className="h-10 px-5 bg-white border border-gray-200 rounded-lg text-[14px] font-medium text-gray-900 tracking-[-0.15px] leading-5 hover:bg-gray-50">Anuluj</button>
-        <button onClick={() => onSave(note)} className="h-10 px-5 bg-[#030213] text-white rounded-lg text-[14px] font-medium tracking-[-0.15px] leading-5 hover:bg-[#1a1a2e]">Zapisz</button>
+        {current && <Button variant="danger-outline" onClick={() => onSave("")}>Usuń notatkę</Button>}
+        <Button onClick={onClose}>Anuluj</Button>
+        <Button variant="primary" onClick={() => onSave(note)}>Zapisz</Button>
       </div>
     </Modal>
   );

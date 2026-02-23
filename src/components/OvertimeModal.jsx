@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Modal from "./Modal";
+import Button from "./Button";
 import TimeSelect from "./TimeSelect";
 import { formatHours, formatTimeRange, calcHourSpan } from "../utils";
 
@@ -41,8 +42,8 @@ export default function OvertimeModal({ onSave, onClose, employees, initial }) {
       </div>
       <div className="mb-6 text-[16px] text-gray-900">Czas: <span className={"font-bold " + (hours > 0 ? "text-[#f54900]" : "text-red-600")}>{hours > 0 ? formatHours(hours) + "h" : "nieprawidłowy"}</span></div>
       <div className="flex gap-3 justify-end">
-        <button onClick={onClose} className="h-10 px-5 bg-white border border-gray-200 rounded-lg text-[14px] font-medium text-gray-900 tracking-[-0.15px] leading-5 hover:bg-gray-50">Anuluj</button>
-        <button onClick={save} disabled={hours <= 0} className="h-10 px-5 bg-[#f54900] text-white rounded-lg text-[14px] font-medium tracking-[-0.15px] leading-5 hover:bg-[#dc4100] disabled:opacity-40">Dodaj nadgodziny</button>
+        <Button onClick={onClose}>Anuluj</Button>
+        <Button variant="orange" onClick={save} disabled={hours <= 0}>Dodaj nadgodziny</Button>
       </div>
     </Modal>
   );

@@ -1,4 +1,5 @@
 import Modal from "./Modal";
+import Button from "./Button";
 import { IconAlert } from "./Icons";
 
 export default function ConfirmModal({ title, message, confirmLabel, confirmColor, onConfirm, onClose }) {
@@ -14,8 +15,8 @@ export default function ConfirmModal({ title, message, confirmLabel, confirmColo
         </div>
       </div>
       <div className="flex gap-3 justify-end">
-        <button onClick={onClose} className="h-10 px-5 bg-white border border-gray-200 rounded-lg text-[14px] font-medium text-gray-900 tracking-[-0.15px] leading-5 hover:bg-gray-50">Anuluj</button>
-        <button onClick={onConfirm} className={"h-10 px-5 rounded-lg text-[14px] font-medium tracking-[-0.15px] leading-5 text-white " + (confirmColor || "bg-red-600 hover:bg-red-700")}>{confirmLabel || "Usuń"}</button>
+        <Button onClick={onClose}>Anuluj</Button>
+        <Button variant="danger" onClick={onConfirm} className={confirmColor}>{confirmLabel || "Usuń"}</Button>
       </div>
     </Modal>
   );

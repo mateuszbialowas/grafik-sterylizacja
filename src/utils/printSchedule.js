@@ -1,4 +1,4 @@
-import { MONTHS_PL, TIMEOUTS } from "../constants";
+import { MONTHS_PL, TIMEOUTS, SHIFT_TYPES, CUSTOM_SHIFT_PRINT_BG } from "../constants";
 import { isWeekend, getDayName, formatHours, getShiftDisplay, parseCustomShift, parseOvertimeVal, getShiftHours, escapeHtml } from "../utils";
 
 export default function printSchedule({ year, month, employees, shifts, overtime, normOverrides, daysInMonth, workingDays, monthlyNorm, overtimeEmployeeIds, getEmpNorm, calcOT }) {
@@ -31,7 +31,7 @@ export default function printSchedule({ year, month, employees, shifts, overtime
       const shift = shifts[emp.id]?.[day] || "";
       const disp = getShiftDisplay(shift);
       const weekend = isWeekend(year, month, day);
-      const bg = shift === "." ? "#f3e8ff" : shift.startsWith("C:") ? "#fce7f3" : shift === "D" ? "#dbeafe" : shift === "D*" ? "#fef3c7" : shift === "R" ? "#dcfce7" : weekend ? "#f3f4f6" : "#fff";
+      const bg = shift.startsWith("C:") ? CUSTOM_SHIFT_PRINT_BG : SHIFT_TYPES[shift]?.printBg || (weekend ? "#f3f4f6" : "#fff");
       const customShift = parseCustomShift(shift);
       const cellLabel = customShift ? customShift.startH + ":" + String(customShift.startM).padStart(2, "0") + "<br/>" + customShift.endH + ":" + String(customShift.endM).padStart(2, "0") : escapeHtml(disp.label);
       const cellSize = customShift ? "font-size:10px;line-height:1.1" : shift === "." ? "font-size:20px" : "font-size:18px";
@@ -86,11 +86,8 @@ export default function printSchedule({ year, month, employees, shifts, overtime
     + '</tr></thead><tbody>' + rows + overtimeRows + '</tbody></table>'
     + '<div style="display:flex;justify-content:space-between;margin-top:60px;padding:0 40px"><div style="text-align:center"><div style="border-top:1px solid black;width:280px;padding-top:6px;font-size:15px">Podpis pielęgniarki/położnej sporządzającej</div></div><div style="text-align:center"><div style="border-top:1px solid black;width:280px;padding-top:6px;font-size:15px">Akceptacja przełożonej</div></div></div>'
     + '<div style="margin-top:30px;font-size:14px;border-top:1px solid #ccc;padding-top:10px"><b>Legenda:</b> '
-    + '<span style="background:#dbeafe;padding:2px 8px;margin:0 4px;font-weight:bold;font-size:15px">D</span> = 7:00–19:00 (12h) &nbsp; '
-    + '<span style="background:#fef3c7;padding:2px 8px;margin:0 4px;font-weight:bold;font-size:15px">D*</span> = 8:00–20:00 (12h) &nbsp; '
-    + '<span style="background:#dcfce7;padding:2px 8px;margin:0 4px;font-weight:bold;font-size:15px">R</span> = 7:00–14:35 (7:35h) &nbsp; '
-    + '<span style="background:#f3e8ff;padding:2px 8px;margin:0 4px;font-weight:bold;font-size:15px;color:#6b21a8">•</span> = pod telefonem &nbsp; '
-    + '<span style="background:#fce7f3;padding:2px 8px;margin:0 4px;font-weight:bold;font-size:13px">np. 7:00-11:30</span> = zmiana niestandardowa &nbsp; '
+    + Object.entries(SHIFT_TYPES).map(([, s]) => '<span style="background:' + s.printBg + ';padding:2px 8px;margin:0 4px;font-weight:bold;font-size:15px">' + s.label + '</span> = ' + s.name + (s.hours > 0 ? " (" + formatHours(s.hours) + "h)" : "")).join(" &nbsp; ")
+    + ' &nbsp; <span style="background:' + CUSTOM_SHIFT_PRINT_BG + ';padding:2px 8px;margin:0 4px;font-weight:bold;font-size:13px">np. 7:00-11:30</span> = zmiana niestandardowa &nbsp; '
     + 'puste = wolne</div>'
     + '</body></html>';
 

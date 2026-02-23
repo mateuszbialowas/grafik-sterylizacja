@@ -1,4 +1,5 @@
 import { getShiftDisplay } from "../utils";
+import { CELL_STYLE } from "../constants";
 import { IconNote } from "./Icons";
 
 export default function ShiftCell({ value, isWeekendDay, request, onClick, onContextMenu, onShiftClick }) {
@@ -11,7 +12,7 @@ export default function ShiftCell({ value, isWeekendDay, request, onClick, onCon
   };
   return (
     <td className={"border border-gray-200 text-center cursor-pointer select-none transition-colors duration-75 hover:brightness-95 relative " + bg + " " + (isCustom ? "text-[10px] font-bold leading-tight" : "text-[16px] font-bold leading-6 tracking-[-0.3px]")}
-      style={{ width: 38, minWidth: 38, maxWidth: 38, height: 40, padding: 0 }}
+      style={CELL_STYLE}
       onClick={handleClick} onContextMenu={onContextMenu}>
       {isCustom ? <>{disp.label.split("|")[0]}<br/>{disp.label.split("|")[1]}</> : disp.label}
       {request && (

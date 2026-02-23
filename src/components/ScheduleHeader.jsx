@@ -1,33 +1,26 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useSchedule } from "../hooks/useSchedule";
-import { MONTHS_PL, TIMEOUTS } from "../constants";
+import { TIMEOUTS } from "../constants";
 import { formatHours } from "../utils";
 import printSchedule from "../utils/printSchedule";
 import Tooltip from "./Tooltip";
-import { IconPrinter, IconMoreVertical, IconDownload, IconUpload, IconCode, IconChevronLeft, IconChevronRight, IconCalendar, IconEditSmall } from "./Icons";
+import MonthNavigator from "./MonthNavigator";
+import ExportMenu from "./ExportMenu";
+import { IconPrinter, IconEditSmall } from "./Icons";
 
 export default function ScheduleHeader() {
   const {
     year, month, workingDays, workingDaysOverride, autoWorkingDays,
     monthlyNorm, allNormsOk, employees, shifts, overtime, normOverrides,
     daysInMonth, overtimeEmployeeIds,
-    changeMonth, setData, exportJson, importJson, showToast, getEmpNorm, calcOT,
+    setData, exportJson, importJson, getEmpNorm, calcOT,
   } = useSchedule();
 
-  const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showJson, setShowJson] = useState(false);
   const [editingWorkingDays, setEditingWorkingDays] = useState(false);
   const [titleClicks, setTitleClicks] = useState(0);
   const [sunEasterEgg, setSunEasterEgg] = useState(false);
-  const moreMenuRef = useRef(null);
   const titleClickTimer = useRef(null);
-
-  useEffect(() => {
-    if (!showMoreMenu) return;
-    const handler = (e) => { if (moreMenuRef.current && !moreMenuRef.current.contains(e.target)) setShowMoreMenu(false); };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [showMoreMenu]);
 
   const handleTitleClick = () => {
     const next = titleClicks + 1;
@@ -47,33 +40,6 @@ export default function ScheduleHeader() {
     daysInMonth, workingDays, monthlyNorm, overtimeEmployeeIds, getEmpNorm, calcOT,
   });
 
-  const downloadJson = () => {
-    const blob = new Blob([exportJson()], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `grafik-${MONTHS_PL[month]}-${year}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    setShowMoreMenu(false);
-    showToast("Plik JSON został pobrany");
-  };
-
-  const handleImportFile = () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = ".json";
-    input.onchange = (e) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => { importJson(ev.target.result); };
-      reader.readAsText(file);
-    };
-    input.click();
-    setShowMoreMenu(false);
-  };
-
   return (
     <div className="bg-white rounded-[10px] border border-gray-200 shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_0px_rgba(0,0,0,0.1)] px-[12px] pt-[10px] pb-[10px] mb-2 flex flex-col gap-[10px]">
       <div className="flex items-center justify-between gap-2 min-w-0">
@@ -86,43 +52,11 @@ export default function ScheduleHeader() {
             <IconPrinter />
             <span className="text-[14px] font-medium text-neutral-950 tracking-[-0.15px] leading-[20px] hidden sm:inline">Drukuj</span>
           </button>
-          <div className="relative" ref={moreMenuRef}>
-            <button onClick={() => setShowMoreMenu(!showMoreMenu)} className="size-[32px] bg-white border border-black/10 rounded-[8px] flex items-center justify-center hover:bg-gray-50">
-              <IconMoreVertical />
-            </button>
-            {showMoreMenu && (
-              <div className="absolute right-0 top-full mt-1 bg-white rounded-[10px] border border-gray-200 shadow-[0px_4px_16px_rgba(0,0,0,0.12)] py-1.5 min-w-[200px] z-50">
-                <button onClick={downloadJson} className="w-full text-left px-3 py-2 text-[14px] text-gray-900 tracking-[-0.15px] leading-5 hover:bg-gray-100 flex items-center gap-2.5">
-                  <IconDownload />
-                  Eksportuj JSON
-                </button>
-                <button onClick={handleImportFile} className="w-full text-left px-3 py-2 text-[14px] text-gray-900 tracking-[-0.15px] leading-5 hover:bg-gray-100 flex items-center gap-2.5">
-                  <IconUpload />
-                  Importuj JSON
-                </button>
-                <div className="mx-2 my-1 h-px bg-gray-200" />
-                <button onClick={() => { setShowJson(!showJson); setShowMoreMenu(false); }} className="w-full text-left px-3 py-2 text-[14px] text-gray-900 tracking-[-0.15px] leading-5 hover:bg-gray-100 flex items-center gap-2.5">
-                  <IconCode />
-                  {showJson ? "Ukryj JSON" : "Zobacz JSON"}
-                </button>
-              </div>
-            )}
-          </div>
+          <ExportMenu showJson={showJson} setShowJson={setShowJson} />
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-[10px]">
-        <div className="flex items-center gap-[6px] bg-gray-50 border border-gray-200 rounded-[8px] h-[42px] px-[10px]">
-          <button onClick={() => changeMonth(-1)} className="size-[30px] bg-white rounded-[4px] flex items-center justify-center hover:bg-gray-100">
-            <IconChevronLeft />
-          </button>
-          <div className="flex items-center gap-[6px] px-[10px]">
-            <IconCalendar />
-            <span className="text-[14px] font-semibold text-neutral-950 tracking-[-0.15px] leading-[20px]">{MONTHS_PL[month]} {year}</span>
-          </div>
-          <button onClick={() => changeMonth(1)} className="size-[30px] bg-white rounded-[4px] flex items-center justify-center hover:bg-gray-100">
-            <IconChevronRight />
-          </button>
-        </div>
+        <MonthNavigator />
         <div className={"flex items-center gap-3 rounded-[8px] h-[42px] px-3.5 border " + (workingDaysOverride != null ? "bg-[#eef2ff] border-[#a3b3ff]" : "bg-gray-50 border-gray-200")}>
           <div className="flex items-center gap-1.5">
             <span className={"text-[11px] font-semibold uppercase tracking-[0.3px] leading-3 " + (workingDaysOverride != null ? "text-[#432dd7]" : "text-gray-600")}>Norma:</span>
