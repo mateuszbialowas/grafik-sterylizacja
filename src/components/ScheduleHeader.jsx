@@ -1,12 +1,25 @@
 import { useState, useRef, useEffect } from "react";
-import { MONTHS_PL } from "../constants";
+import { useSchedule } from "../context/ScheduleContext";
+import { MONTHS_PL, TIMEOUTS } from "../constants";
 import { formatHours } from "../utils";
+import printSchedule from "../utils/printSchedule";
 import Tooltip from "./Tooltip";
 
-export default function ScheduleHeader({ year, month, workingDays, workingDaysOverride, autoWorkingDays, monthlyNorm, allNormsOk, sunEasterEgg, onTitleClick, onPrint, changeMonth, setData, exportJson, importJson, showToast, editingWorkingDays, setEditingWorkingDays }) {
+export default function ScheduleHeader() {
+  const {
+    year, month, workingDays, workingDaysOverride, autoWorkingDays,
+    monthlyNorm, allNormsOk, employees, shifts, overtime, normOverrides,
+    daysInMonth, overtimeEmployeeIds,
+    changeMonth, setData, exportJson, importJson, showToast, getEmpNorm, calcOT,
+  } = useSchedule();
+
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showJson, setShowJson] = useState(false);
+  const [editingWorkingDays, setEditingWorkingDays] = useState(false);
+  const [titleClicks, setTitleClicks] = useState(0);
+  const [sunEasterEgg, setSunEasterEgg] = useState(false);
   const moreMenuRef = useRef(null);
+  const titleClickTimer = useRef(null);
 
   useEffect(() => {
     if (!showMoreMenu) return;
@@ -14,6 +27,24 @@ export default function ScheduleHeader({ year, month, workingDays, workingDaysOv
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [showMoreMenu]);
+
+  const handleTitleClick = () => {
+    const next = titleClicks + 1;
+    setTitleClicks(next);
+    clearTimeout(titleClickTimer.current);
+    if (next >= 5) {
+      setSunEasterEgg(true);
+      setTitleClicks(0);
+      setTimeout(() => setSunEasterEgg(false), TIMEOUTS.easterEggDisplay);
+    } else {
+      titleClickTimer.current = setTimeout(() => setTitleClicks(0), TIMEOUTS.easterEggReset);
+    }
+  };
+
+  const handlePrint = () => printSchedule({
+    year, month, employees, shifts, overtime, normOverrides,
+    daysInMonth, workingDays, monthlyNorm, overtimeEmployeeIds, getEmpNorm, calcOT,
+  });
 
   const downloadJson = () => {
     const blob = new Blob([exportJson()], { type: "application/json" });
@@ -45,12 +76,12 @@ export default function ScheduleHeader({ year, month, workingDays, workingDaysOv
   return (
     <div className="bg-white rounded-[10px] border border-[#e5e7eb] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_0px_rgba(0,0,0,0.1)] px-[12px] pt-[10px] pb-[10px] mb-2 flex flex-col gap-[10px]">
       <div className="flex items-center justify-between gap-2 min-w-0">
-        <h1 className="text-[18px] tracking-[-0.4px] leading-[26px] cursor-default min-w-0 truncate" onClick={onTitleClick}>
+        <h1 className="text-[18px] tracking-[-0.4px] leading-[26px] cursor-default min-w-0 truncate" onClick={handleTitleClick}>
           <span className="font-bold text-[#101828]">Rozkład pracy Techników Sterylizacji</span>
           <span className="font-normal text-[#6a7282]"> — Centralna Sterylizacja</span>
         </h1>
         <div className="flex gap-[8px] shrink-0">
-          <button onClick={onPrint} className="h-[32px] px-[8px] bg-white border border-black/10 rounded-[8px] flex items-center justify-center gap-[6px] hover:bg-gray-50">
+          <button onClick={handlePrint} className="h-[32px] px-[8px] bg-white border border-black/10 rounded-[8px] flex items-center justify-center gap-[6px] hover:bg-gray-50">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
             <span className="text-[14px] font-medium text-[#0a0a0a] tracking-[-0.15px] leading-[20px] hidden sm:inline">Drukuj</span>
           </button>
@@ -103,7 +134,7 @@ export default function ScheduleHeader({ year, month, workingDays, workingDaysOv
             {workingDaysOverride != null && <Tooltip text="Dni robocze zmienione ręcznie"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#432dd7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></Tooltip>}
             {editingWorkingDays ? (
               <input autoFocus defaultValue={workingDays} className={"w-8 text-[18px] font-bold tracking-[-0.4px] leading-6 bg-white border rounded px-0.5 text-center outline-none " + (workingDaysOverride != null ? "text-[#312c85] border-[#a3b3ff]" : "text-[#101828] border-[#d1d5dc]")}
-                onBlur={e => { const v = parseInt(e.target.value); if (!isNaN(v) && v > 0) { setData(p => ({ ...p, workingDaysOverride: v === autoWorkingDays ? null : v })); } setEditingWorkingDays(false); }}
+                onBlur={e => { const val = parseInt(e.target.value); if (!isNaN(val) && val > 0) { setData(prev => ({ ...prev, workingDaysOverride: val === autoWorkingDays ? null : val })); } setEditingWorkingDays(false); }}
                 onKeyDown={e => { if (e.key === "Enter") e.target.blur(); if (e.key === "Escape") setEditingWorkingDays(false); }} />
             ) : (
               <Tooltip text={workingDaysOverride != null ? "Zmienione ręcznie \u2022 Prawy klik aby edytować" : "Prawy klik aby edytować"}><span className={"text-[18px] font-bold tracking-[-0.4px] leading-6 cursor-pointer " + (workingDaysOverride != null ? "text-[#312c85]" : "text-[#101828]")} onContextMenu={e => { e.preventDefault(); setEditingWorkingDays(true); }}>{workingDays}</span></Tooltip>

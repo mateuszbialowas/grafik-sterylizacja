@@ -10,3 +10,11 @@ export const SHIFT_CYCLE = ["", "D", "D*", "R"];
 export const MONTHS_PL = ["Styczeń","Luty","Marzec","Kwiecień","Maj","Czerwiec","Lipiec","Sierpień","Wrzesień","Październik","Listopad","Grudzień"];
 
 export const DAILY_NORM = 7 + 35 / 60;
+
+export const DAY_NAMES_PL = ["Nd", "Pn", "Wt", "Śr", "Cz", "Pt", "So"];
+
+export const COL_WIDTH = { name: 140, norm: 65, day: 38, summary: 70 };
+
+export const ROW_HEIGHT = { header: 42, employee: 40, addRow: 44, overtimeHeader: 42, overtimeSubHeader: 32 };
+
+export const TIMEOUTS = { easterEggReset: 1500, easterEggDisplay: 5000, toast: 3000, printCleanup: 1000 };

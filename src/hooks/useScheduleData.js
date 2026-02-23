@@ -1,7 +1,9 @@
-import { useState, useCallback, useEffect, useRef } from "react";
-import { SHIFT_CYCLE, MONTHS_PL, DAILY_NORM } from "../constants";
-import { getDaysInMonth, getWorkingDays, formatHours, getShiftHours, getDefaultTimes, parseOvertimeVal } from "../utils";
+import { useCallback, useRef } from "react";
+import { SHIFT_CYCLE, DAILY_NORM } from "../constants";
+import { getDaysInMonth, getWorkingDays, getShiftHours, parseOvertimeVal } from "../utils";
 import useLocalStorage from "./useLocalStorage";
+import useMonthNavigation from "./useMonthNavigation";
+import useImportExport from "./useImportExport";
 
 const DEFAULT_EMPLOYEES = [
   { id: 1, name: "Anna Nowak" }, { id: 2, name: "Beata Kowalska" },
@@ -11,140 +13,135 @@ const DEFAULT_EMPLOYEES = [
   { id: 9, name: "Irena Kozłowska" },
 ];
 
-const monthKey = (y, m) => `grafik-${y}-${String(m).padStart(2, "0")}`;
-
-const emptyMonthData = () => ({ shifts: {}, overtime: {}, requests: {}, workingDaysOverride: null, normOverrides: {} });
-
-const migrateFlat = (obj) => {
-  if (!obj || typeof obj !== "object") return {};
-  const keys = Object.keys(obj);
-  if (keys.length === 0) return {};
-  if (!keys[0].includes("-")) return obj;
-  const nested = {};
-  for (const [key, val] of Object.entries(obj)) {
-    const i = key.indexOf("-");
-    const eid = key.slice(0, i);
-    const day = key.slice(i + 1);
-    if (!nested[eid]) nested[eid] = {};
-    nested[eid][day] = val;
-  }
-  return nested;
-};
-
-const loadMonthData = (y, m) => {
-  try {
-    const stored = localStorage.getItem(monthKey(y, m));
-    if (!stored) return emptyMonthData();
-    const d = JSON.parse(stored);
-    return { ...d, shifts: migrateFlat(d.shifts), overtime: migrateFlat(d.overtime), requests: migrateFlat(d.requests) };
-  } catch { return emptyMonthData(); }
-};
-
 export default function useScheduleData(showToast) {
-  const now = new Date();
   const [shared, setShared] = useLocalStorage("grafik-shared", { employees: DEFAULT_EMPLOYEES });
-  const [year, setYear] = useState(() => {
-    try { const s = localStorage.getItem("grafik-current"); return s ? JSON.parse(s).year : now.getFullYear(); } catch { return now.getFullYear(); }
-  });
-  const [month, setMonth] = useState(() => {
-    try { const s = localStorage.getItem("grafik-current"); return s ? JSON.parse(s).month : now.getMonth(); } catch { return now.getMonth(); }
-  });
-  const [monthData, setMonthData] = useState(() => loadMonthData(year, month));
+  const { year, setYear, month, setMonth, monthData, setMonthData, changeMonth } = useMonthNavigation();
 
-  useEffect(() => { localStorage.setItem("grafik-current", JSON.stringify({ year, month })); }, [year, month]);
-  useEffect(() => { localStorage.setItem(monthKey(year, month), JSON.stringify(monthData)); }, [year, month, monthData]);
-
+  // Composed data object
   const data = { year, month, employees: shared.employees, ...monthData };
   const dataRef = useRef(data);
   dataRef.current = data;
 
+  // Unified state setter
   const setData = useCallback((updater) => {
     const next = typeof updater === "function" ? updater(dataRef.current) : updater;
     setShared({ employees: next.employees });
-    setMonthData({ shifts: next.shifts, overtime: next.overtime, requests: next.requests, workingDaysOverride: next.workingDaysOverride ?? null, normOverrides: next.normOverrides || {} });
-  }, [setShared]);
+    setMonthData({
+      shifts: next.shifts,
+      overtime: next.overtime,
+      requests: next.requests,
+      workingDaysOverride: next.workingDaysOverride ?? null,
+      normOverrides: next.normOverrides || {},
+    });
+  }, [setShared, setMonthData]);
 
+  // Derived values
   const { employees, shifts, overtime, requests, workingDaysOverride, normOverrides } = data;
   const daysInMonth = getDaysInMonth(year, month);
   const autoWorkingDays = getWorkingDays(year, month);
   const workingDays = workingDaysOverride != null ? workingDaysOverride : autoWorkingDays;
   const monthlyNorm = workingDays * DAILY_NORM;
-  const getEmpNorm = useCallback((eid) => normOverrides[eid] != null ? normOverrides[eid] : monthlyNorm, [normOverrides, monthlyNorm]);
-  const overtimeEmployeeIds = Object.keys(overtime).filter(eid => Object.values(overtime[eid] || {}).some(v => v)).map(Number);
 
-  const setShift = useCallback((eid, day, val) => { setData(p => ({ ...p, shifts: { ...p.shifts, [eid]: { ...p.shifts[eid], [day]: val } } })); }, [setData]);
+  const getEmpNorm = useCallback(
+    (employeeId) => normOverrides[employeeId] != null ? normOverrides[employeeId] : monthlyNorm,
+    [normOverrides, monthlyNorm],
+  );
 
-  const cycleShift = useCallback((eid, day) => {
-    const cur = shifts[eid]?.[day] || "";
-    if (cur.startsWith("C:")) { setShift(eid, day, ""); return; }
-    const idx = SHIFT_CYCLE.indexOf(cur);
-    setShift(eid, day, SHIFT_CYCLE[(idx + 1) % SHIFT_CYCLE.length]);
-  }, [shifts, setShift]);
+  const overtimeEmployeeIds = Object.keys(overtime)
+    .filter(employeeId => Object.values(overtime[employeeId] || {}).some(val => val))
+    .map(Number);
 
-  const calcEmpHours = useCallback((eid, excl) => {
-    let h = 0; for (let d = 1; d <= daysInMonth; d++) { if (d === excl) continue; h += getShiftHours(shifts[eid]?.[d]); } return h;
+  // Calculations
+  const calcHours = (employeeId) => {
+    let total = 0;
+    for (let day = 1; day <= daysInMonth; day++) total += getShiftHours(shifts[employeeId]?.[day]);
+    return total;
+  };
+
+  const calcEmpHours = useCallback((employeeId, excludeDay) => {
+    let total = 0;
+    for (let day = 1; day <= daysInMonth; day++) {
+      if (day === excludeDay) continue;
+      total += getShiftHours(shifts[employeeId]?.[day]);
+    }
+    return total;
   }, [shifts, daysInMonth]);
 
-  const calcHours = (eid) => { let h = 0; for (let d = 1; d <= daysInMonth; d++) h += getShiftHours(shifts[eid]?.[d]); return h; };
-
-  const calcOT = (eid) => { let h = 0; for (let d = 1; d <= daysInMonth; d++) { const v = overtime[eid]?.[d]; if (v) { const p = parseOvertimeVal(v); if (p) h += p.hours; } } return h; };
+  const calcOT = (employeeId) => {
+    let total = 0;
+    for (let day = 1; day <= daysInMonth; day++) {
+      const value = overtime[employeeId]?.[day];
+      if (value) {
+        const parsed = parseOvertimeVal(value);
+        if (parsed) total += parsed.hours;
+      }
+    }
+    return total;
+  };
 
   const allNormsOk = employees.length > 0 && employees.every(emp => {
     const hrs = calcHours(emp.id);
-    const hasAnyShift = Object.values(shifts[emp.id] || {}).some(v => v);
+    const hasAnyShift = Object.values(shifts[emp.id] || {}).some(val => val);
     return hasAnyShift && Math.abs(hrs - getEmpNorm(emp.id)) < 0.01;
   });
 
-  const setOT = useCallback(({ empId, day, value }) => { setData(p => ({ ...p, overtime: { ...p.overtime, [empId]: { ...p.overtime[empId], [day]: value } } })); }, [setData]);
-  const removeOT = useCallback((eid, day) => { setData(p => { const empOt = { ...p.overtime[eid] }; delete empOt[day]; return { ...p, overtime: { ...p.overtime, [eid]: empOt } }; }); }, [setData]);
+  // CRUD operations
+  const setShift = useCallback((employeeId, day, value) => {
+    setData(prev => ({
+      ...prev,
+      shifts: { ...prev.shifts, [employeeId]: { ...prev.shifts[employeeId], [day]: value } },
+    }));
+  }, [setData]);
+
+  const cycleShift = useCallback((employeeId, day) => {
+    const current = shifts[employeeId]?.[day] || "";
+    if (current.startsWith("C:")) { setShift(employeeId, day, ""); return; }
+    const idx = SHIFT_CYCLE.indexOf(current);
+    setShift(employeeId, day, SHIFT_CYCLE[(idx + 1) % SHIFT_CYCLE.length]);
+  }, [shifts, setShift]);
+
+  const setOT = useCallback(({ empId, day, value }) => {
+    setData(prev => ({
+      ...prev,
+      overtime: { ...prev.overtime, [empId]: { ...prev.overtime[empId], [day]: value } },
+    }));
+  }, [setData]);
+
+  const removeOT = useCallback((employeeId, day) => {
+    setData(prev => {
+      const empOvertime = { ...prev.overtime[employeeId] };
+      delete empOvertime[day];
+      return { ...prev, overtime: { ...prev.overtime, [employeeId]: empOvertime } };
+    });
+  }, [setData]);
 
   const saveNote = useCallback((noteModal, note) => {
     const { empId, day } = noteModal;
-    setData(p => {
-      const empReqs = { ...p.requests[empId] };
-      if (note.trim()) empReqs[day] = note.trim(); else delete empReqs[day];
-      return { ...p, requests: { ...p.requests, [empId]: empReqs } };
+    setData(prev => {
+      const empRequests = { ...prev.requests[empId] };
+      if (note.trim()) empRequests[day] = note.trim();
+      else delete empRequests[day];
+      return { ...prev, requests: { ...prev.requests, [empId]: empRequests } };
     });
   }, [setData]);
 
   const addEmployee = useCallback((name) => {
     if (!name.trim()) return;
-    setData(p => {
-      const mx = p.employees.reduce((m, e) => Math.max(m, e.id), 0);
-      return { ...p, employees: [...p.employees, { id: mx + 1, name: name.trim() }] };
+    setData(prev => {
+      const maxId = prev.employees.reduce((max, emp) => Math.max(max, emp.id), 0);
+      return { ...prev, employees: [...prev.employees, { id: maxId + 1, name: name.trim() }] };
     });
   }, [setData]);
 
-  const changeMonth = useCallback((delta) => {
-    let newM = month + delta, newY = year;
-    if (newM < 0) { newM = 11; newY--; }
-    if (newM > 11) { newM = 0; newY++; }
-    setYear(newY);
-    setMonth(newM);
-    setMonthData(loadMonthData(newY, newM));
-  }, [month, year]);
-
-  const exportJson = () => JSON.stringify(data, null, 2);
-
-  const importJson = useCallback((s) => {
-    try {
-      const p = JSON.parse(s);
-      if (p.employees) {
-        setShared({ employees: p.employees });
-        if (p.year != null) setYear(p.year);
-        if (p.month != null) setMonth(p.month);
-        setMonthData({ shifts: migrateFlat(p.shifts || {}), overtime: migrateFlat(p.overtime || {}), requests: migrateFlat(p.requests || {}), workingDaysOverride: p.workingDaysOverride ?? null, normOverrides: p.normOverrides || {} });
-        showToast("Dane zaimportowane pomyślnie");
-      }
-    } catch { showToast("Nieprawidłowy plik JSON", "error"); }
-  }, [setShared, showToast]);
-
-  const getCustomModalData = useCallback((empId, day) => {
-    const cur = shifts[empId]?.[day] || "";
-    const emp = employees.find(x => x.id === empId);
-    const defs = getDefaultTimes(cur);
-    return { empId, day, empName: emp?.name || "", initial: defs, remainingHours: getEmpNorm(empId) - calcEmpHours(empId, day) };
-  }, [shifts, employees, getEmpNorm, calcEmpHours]);
+  // Import/Export
+  const { exportJson, importJson, getCustomModalData } = useImportExport({
+    dataRef: { get current() { return { ...dataRef.current, daysInMonth, workingDays }; } },
+    setShared,
+    setYear,
+    setMonth,
+    setMonthData,
+    showToast,
+  });
 
   return {
     year, month, employees, shifts, overtime, requests, workingDaysOverride, normOverrides,
