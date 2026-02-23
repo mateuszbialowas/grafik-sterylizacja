@@ -6,8 +6,8 @@ export default defineConfig({
   description: 'Aplikacja do zarządzania grafikiem pracy techników sterylizacji',
   lastUpdated: true,
   ignoreDeadLinks: [
-    /grafik-sterylizacja/,
-    /\/app/,
+    /^\/grafik-sterylizacja(\.html)?$/,
+    /^\/app(\/|$)/,
   ],
 
   head: [
