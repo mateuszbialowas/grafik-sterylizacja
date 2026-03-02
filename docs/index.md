@@ -1,12 +1,12 @@
 ---
 layout: home
 hero:
-  name: Grafik Sterylizacja
+  name: Grafik Zmianowy
   text: Zarządzanie grafikiem pracy
-  tagline: Lekka, offline-first aplikacja do planowania zmian techników Centralnej Sterylizacji. Jeden plik HTML — bez instalacji, bez internetu.
+  tagline: Lekka, offline-first aplikacja do planowania zmian pracowników. Jeden plik HTML — bez instalacji, bez internetu.
   image:
     src: /screenshots/schedule-overview.png
-    alt: Grafik Sterylizacja — widok grafiku
+    alt: Grafik Zmianowy — widok grafiku
   actions:
     - theme: brand
       text: Otwórz aplikację
@@ -21,7 +21,7 @@ hero:
 features:
   - icon: 🔄
     title: 4 typy zmian + własne
-    details: Dyżur (D), Dyżur alternatywny (D*), Ranna (R), Pod telefonem (•) — kliknij komórkę, aby przełączać. Obsługa niestandardowych zakresów godzin.
+    details: Dzienna (D), Nocna (N), Poranna (R), Dyżur pod telefonem (•) — kliknij komórkę, aby przełączać. Obsługa niestandardowych zakresów godzin.
   - icon: 📴
     title: Działa offline
     details: Wszystkie dane przechowywane w przeglądarce (localStorage). Bez serwera, bez bazy danych, bez logowania. Otwórz plik i pracuj.
@@ -30,7 +30,7 @@ features:
     details: Gotowy układ do druku w orientacji poziomej z legendą. Eksport i import danych w formacie JSON — łatwe kopie zapasowe.
   - icon: ⏱️
     title: Norma i nadgodziny
-    details: Automatyczne obliczanie przepracowanych godzin vs. norma miesięczna (dni × 7:35h). Indywidualne nadpisania normy i śledzenie nadgodzin.
+    details: Automatyczne obliczanie przepracowanych godzin vs. norma miesięczna (konfigurowalna norma dzienna). Indywidualne nadpisania normy i śledzenie nadgodzin.
   - icon: 📝
     title: Notatki i uwagi
     details: Dodawaj notatki do dowolnej komórki — urlopy, szkolenia, prośby pracowników. Wszystko widoczne na wydruku.

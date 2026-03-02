@@ -2,8 +2,8 @@ import { defineConfig } from 'vitepress'
 
 export default defineConfig({
   base: '/grafik-sterylizacja/',
-  title: 'Grafik Sterylizacja',
-  description: 'Aplikacja do zarządzania grafikiem pracy techników sterylizacji',
+  title: 'Grafik Zmianowy',
+  description: 'Aplikacja do zarządzania grafikiem pracy zmianowej',
   lastUpdated: true,
   ignoreDeadLinks: [
     /^\/grafik-sterylizacja(\.html)?$/,
@@ -14,14 +14,14 @@ export default defineConfig({
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/grafik-sterylizacja/favicon.svg' }],
     ['meta', { name: 'theme-color', content: '#3B82F6' }],
     ['meta', { property: 'og:type', content: 'website' }],
-    ['meta', { property: 'og:title', content: 'Grafik Sterylizacja' }],
-    ['meta', { property: 'og:description', content: 'Aplikacja do zarządzania grafikiem pracy techników sterylizacji' }],
+    ['meta', { property: 'og:title', content: 'Grafik Zmianowy' }],
+    ['meta', { property: 'og:description', content: 'Aplikacja do zarządzania grafikiem pracy zmianowej' }],
     ['meta', { property: 'og:image', content: 'https://mateuszbialowas.github.io/grafik-sterylizacja/og-image.png' }],
     ['meta', { property: 'og:url', content: 'https://mateuszbialowas.github.io/grafik-sterylizacja/' }],
-    ['meta', { property: 'og:site_name', content: 'Grafik Sterylizacja' }],
+    ['meta', { property: 'og:site_name', content: 'Grafik Zmianowy' }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
-    ['meta', { name: 'twitter:title', content: 'Grafik Sterylizacja' }],
-    ['meta', { name: 'twitter:description', content: 'Aplikacja do zarządzania grafikiem pracy techników sterylizacji' }],
+    ['meta', { name: 'twitter:title', content: 'Grafik Zmianowy' }],
+    ['meta', { name: 'twitter:description', content: 'Aplikacja do zarządzania grafikiem pracy zmianowej' }],
     ['meta', { name: 'twitter:image', content: 'https://mateuszbialowas.github.io/grafik-sterylizacja/og-image.png' }],
   ],
 
@@ -66,8 +66,8 @@ export default defineConfig({
     en: {
       label: 'English',
       lang: 'en',
-      title: 'Sterilization Schedule',
-      description: 'Shift scheduling app for sterilization technicians',
+      title: 'Shift Schedule',
+      description: 'Shift scheduling app for teams',
       themeConfig: {
         nav: [
           { text: '🇵🇱 Polski', link: '/' },
